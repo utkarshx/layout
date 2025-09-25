@@ -2,7 +2,7 @@ import React from 'react';
 
 const TaskPanel = (props) => {
   const { params } = props;
-  const { task, environment } = params || {};
+  const { environment } = params || {};
 
   return (
     <div style={{ padding: '20px', color: 'white', height: '100%', overflowY: 'auto' }}>
