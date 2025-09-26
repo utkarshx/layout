@@ -6,6 +6,9 @@ import LeftPanel from './LeftPanel';
 import EnvironmentPanel from './EnvironmentPanel';
 import TaskPanel from './TaskPanel';
 import ChatPanel from './ChatPanel';
+import EnvironmentTasksPanel from './EnvironmentTasksPanel';
+import EnvironmentDiffPanel from './EnvironmentDiffPanel';
+import EnvironmentInfoPanel from './EnvironmentInfoPanel';
 
 export const DockviewApiContext = createContext(null);
 
@@ -18,6 +21,9 @@ const App = () => {
     EnvironmentPanel: (props) => <EnvironmentPanel {...props} dockviewApi={dockviewApi} />,
     TaskPanel: (props) => <TaskPanel {...props} />,
     ChatPanel: (props) => <ChatPanel {...props} />,
+    EnvironmentTasksPanel: (props) => <EnvironmentTasksPanel {...props} />,
+    EnvironmentDiffPanel: (props) => <EnvironmentDiffPanel {...props} />,
+    EnvironmentInfoPanel: (props) => <EnvironmentInfoPanel {...props} />,
   }), [dockviewApi]);
 
   const onReady = (event) => {
