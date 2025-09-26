@@ -1,8 +1,6 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import { DockviewApiContext } from './App';
 import { Button } from './components/ui/button';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from './components/ui/tabs';
-import { Input } from './components/ui/input';
 import { Popover, PopoverTrigger, PopoverContent } from './components/ui/popover';
 import TaskPanel from './TaskPanel';
 import EnvironmentPanel from './EnvironmentPanel';
@@ -17,8 +15,7 @@ const ChatPanel = (props) => {
       title: 'Chat 1',
       type: 'chat',
       messages: [
-        { id: 1, text: 'Hello! Welcome to the chat panel.', sender: 'system', timestamp: new Date() },
-        { id: 2, text: 'How can I help you today?', sender: 'system', timestamp: new Date() },
+       
       ]
     }
   ]);
@@ -26,6 +23,11 @@ const ChatPanel = (props) => {
   const [inputMessage, setInputMessage] = useState('');
   const [taskPopoverOpen, setTaskPopoverOpen] = useState(false);
   const [showEnvironmentInTaskPopover, setShowEnvironmentInTaskPopover] = useState(false);
+  const [isRemoteTask, setIsRemoteTask] = useState(false);
+  const [selectedAction, setSelectedAction] = useState('Act');
+  const [sendMode, setSendMode] = useState('interactive');
+  const [envPopoverOpen, setEnvPopoverOpen] = useState(false);
+  const [envViewMode, setEnvViewMode] = useState('info');
   const messagesEndRef = useRef(null);
 
   const activeChat = chats.find(chat => chat.id === activeChatId);
@@ -229,31 +231,74 @@ const ChatPanel = (props) => {
           ))}
         </div>
 
-        {/* Add Chat Button */}
-        <Button
-          onClick={addNewChat}
-          className="p-2 px-3 bg-green-600 hover:bg-green-700 text-white border border-gray-700 rounded cursor-pointer text-sm font-bold flex items-center gap-1.5 transition-colors"
-          title="Add new chat"
-        >
-          <span>+</span>
-          <span>Add Chat</span>
-        </Button>
-        <Button
-          onClick={addNewTask}
-          className="p-2 px-3 bg-green-600 hover:bg-green-700 text-white border border-gray-700 rounded cursor-pointer text-sm font-bold flex items-center gap-1.5 transition-colors"
-          title="Add new chat"
-        >
-          <span>+</span>
-          <span>Add Task</span>
-        </Button>
+        {/* Info/Diff Buttons - Show when Remote is checked */}
+        {isRemoteTask && (
+          <>
+            <Popover open={envPopoverOpen && envViewMode === 'info'} onOpenChange={(open) => {
+              if (open) setEnvViewMode('info');
+              setEnvPopoverOpen(open);
+            }}>
+              <PopoverTrigger asChild>
+                <button className="p-2 px-3 bg-blue-600 hover:bg-blue-700 text-white border border-gray-700 rounded cursor-pointer text-sm font-bold transition-colors">
+                  Info
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[800px] h-screen p-0 bg-gray-900 border-gray-700" side="left" align="center">
+                <div className="h-full">
+                  <DockviewApiContext.Provider value={dockviewApi}>
+                    <EnvironmentPanel
+                      params={{ environment: { id: 'env1', name: 'Development Environment' } }}
+                      api={{
+                        id: 'popover-env-info-panel',
+                        title: 'Environment Info',
+                        group: { location: { type: 'popover' } },
+                        onTaskSelect: () => {}
+                      }}
+                    />
+                  </DockviewApiContext.Provider>
+                </div>
+              </PopoverContent>
+            </Popover>
+            
+            <Popover open={envPopoverOpen && envViewMode === 'diff'} onOpenChange={(open) => {
+              if (open) setEnvViewMode('diff');
+              setEnvPopoverOpen(open);
+            }}>
+              <PopoverTrigger asChild>
+                <button className="p-2 px-3 bg-purple-600 hover:bg-purple-700 text-white border border-gray-700 rounded cursor-pointer text-sm font-bold transition-colors">
+                  Diff
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[800px] h-screen p-0 bg-gray-900 border-gray-700" side="left" align="center">
+                <div className="h-full">
+                  <DockviewApiContext.Provider value={dockviewApi}>
+                    <EnvironmentPanel
+                      params={{ environment: { id: 'env1', name: 'Development Environment' } }}
+                      api={{
+                        id: 'popover-env-diff-panel',
+                        title: 'Environment Diff',
+                        group: { location: { type: 'popover' } },
+                        onTaskSelect: () => {}
+                      }}
+                    />
+                  </DockviewApiContext.Provider>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </>
+        )}
       </div>
 
-      {/* Task Info Strip - Only show for task type */}
-      {activeChat?.type === 'task' && (
+      {/* Task Info Strip - Show for task type OR when schedule mode is selected */}
+      {(activeChat?.type === 'task' || sendMode === 'schedule') && (
         <div className="mb-3 p-2 bg-blue-900/50 border border-blue-700 rounded-lg flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-blue-300 text-sm font-medium">📋 Task:</span>
-            <span className="text-white text-sm">{activeChat.title}</span>
+            <span className="text-blue-300 text-sm font-medium">
+              {sendMode === 'schedule' ? '⏰ Scheduled Task:' : '📋 Task:'}
+            </span>
+            <span className="text-white text-sm">
+              {sendMode === 'schedule' ? 'Schedule Configuration' : activeChat.title}
+            </span>
           </div>
           <Popover open={taskPopoverOpen} onOpenChange={setTaskPopoverOpen}>
             <PopoverTrigger asChild>
@@ -302,23 +347,80 @@ const ChatPanel = (props) => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area */}
-      <div className="flex gap-2.5">
-        <textarea
-          value={inputMessage}
-          onChange={(e) => setInputMessage(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Type your message..."
-          className="flex-1 p-2.5 bg-gray-800 border border-gray-700 rounded text-white resize-none text-sm font-inherit"
-          rows={2}
-        />
-        <Button
-          onClick={handleSendMessage}
-          disabled={!inputMessage.trim()}
-          className="p-2.5 px-5 bg-blue-600 hover:bg-blue-700 text-white rounded cursor-pointer text-sm font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Send
-        </Button>
+      {/* Input Area - Modern Interface */}
+      <div className=" p-4">
+        {/* Message Input with Send Button Inside */}
+        <div className="relative">
+          <textarea
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Write your message here..."
+            className="w-full p-3 pr-24 bg-gray-900 border border-gray-600 rounded-xl text-white resize-none text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            rows={3}
+          />
+          
+          {/* Send Button Inside Textarea */}
+          <div className="absolute bottom-3 right-3 flex items-center gap-2">
+            {/* Mode Toggle */}
+           
+            
+            {/* Send Button */}
+            <Button
+              onClick={handleSendMessage}
+              disabled={!inputMessage.trim()}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg cursor-pointer text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Send
+            </Button>
+          </div>
+        </div>
+
+        {/* Bottom Controls */}
+        <div className="flex items-center justify-between mt-4">
+          {/* Left Side Controls */}
+          <div className="flex items-center gap-4">
+            {/* Remote Checkbox */}
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="remote-task"
+                checked={isRemoteTask}
+                onChange={(e) => setIsRemoteTask(e.target.checked)}
+                className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+              />
+              <label htmlFor="remote-task" className="text-gray-300 text-sm font-medium cursor-pointer">
+                Remote
+              </label>
+            </div>
+          </div>
+
+          {/* Mode Indicator */}
+          <div className="text-xs text-gray-400">
+          <div className="flex bg-gray-700 rounded-lg p-1">
+              <button
+                onClick={() => setSendMode('interactive')}
+                className={`px-2 py-1 text-xs rounded-md transition-colors ${
+                  sendMode === 'interactive' 
+                    ? 'bg-blue-600 text-white' 
+                    : 'text-gray-300 hover:text-white'
+                }`}
+              >
+                Interactive
+              </button>
+              <button
+                onClick={() => setSendMode('schedule')}
+                className={`px-2 py-1 text-xs rounded-md transition-colors ${
+                  sendMode === 'schedule' 
+                    ? 'bg-blue-600 text-white' 
+                    : 'text-gray-300 hover:text-white'
+                }`}
+              >
+                Schedule
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Chat Info */}

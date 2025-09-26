@@ -53,30 +53,32 @@ const EnvironmentInfoPanel = (props) => {
       </h3>
       
       <div className="mb-6">
-        <h4 className="mb-3 text-sm font-medium text-blue-400">Overview</h4>
+        {/* <h4 className="mb-3 text-sm font-medium text-blue-400">Overview</h4> */}
         <div className="grid grid-cols-2 gap-3">
           <div className="p-3">
-            <div className="text-xs text-gray-400 mb-1">Name</div>
+            {/* <div className="text-xs text-gray-400 mb-1">Name</div> */}
             <div className="text-base font-medium">{environmentData.name}</div>
           </div>
           <div className="p-3">
-            <div className="text-xs text-gray-400 mb-1">Status</div>
+            {/* <div className="text-xs text-gray-400 mb-1">Status</div> */}
             <div className="text-base font-medium" style={{ color: getStatusColor(environmentData.status) }}>
               ● {environmentData.status}
             </div>
           </div>
-          <div className="p-3">
+          {/* <div className="p-3">
             <div className="text-xs text-gray-400 mb-1">URL</div>
             <div className="text-sm text-blue-400 break-all">
               {environmentData.url}
             </div>
-          </div>
-          <div className="p-3">
+          </div> */}
+          {/* <div className="p-3">
             <div className="text-xs text-gray-400 mb-1">Version</div>
             <div className="text-base font-medium">{environmentData.version}</div>
-          </div>
+          </div> */}
         </div>
       </div>
+
+      
       
      
       

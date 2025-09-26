@@ -8,7 +8,10 @@ import EnvironmentInfoPanel from './EnvironmentInfoPanel';
 
 import { DockviewApiContext } from './App';
 import { Button } from './components/ui/button';
-
+import {
+ 
+  SquareArrowOutUpRight
+} from 'lucide-react';
 
 
 const EnvironmentPanel = (props) => {
@@ -36,6 +39,12 @@ const EnvironmentPanel = (props) => {
     try {
       // Add the three panels to the nested dockview
       api.addPanel({
+        id: 'info_panel',
+        component: 'EnvironmentInfoPanel',
+        title: 'Info',
+        params: { environment: environment }
+      });
+      api.addPanel({
         id: 'tasks_panel',
         component: 'EnvironmentTasksPanel',
         title: 'Tasks',
@@ -46,15 +55,12 @@ const EnvironmentPanel = (props) => {
         id: 'diff_panel',
         component: 'EnvironmentDiffPanel',
         title: 'Diff',
+        position: { direction: 'bottom', referencePanel: 'info_panel' },
+
         params: { environment: environment }
       });
 
-      api.addPanel({
-        id: 'info_panel',
-        component: 'EnvironmentInfoPanel',
-        title: 'Info',
-        params: { environment: environment }
-      });
+     
 
       console.log('Nested panels added successfully');
     } catch (error) {
@@ -106,10 +112,13 @@ const EnvironmentPanel = (props) => {
                 api.onPanelOpen();
               }
             }}
-            className="px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white"
+            className="h-5 w-5 sm:h-6 sm:w-6 p-0 flex-shrink-0"
             title="Open in new panel"
           >
-            <span>⊞</span>
+            {/* <span>⊞</span>
+             */}
+                            <SquareArrowOutUpRight className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+
           </Button>
         )}
       </div>

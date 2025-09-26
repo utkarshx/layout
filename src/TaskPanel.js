@@ -6,6 +6,10 @@ import { Card, CardHeader, CardTitle, CardContent } from './components/ui/card';
 import { Input } from './components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from './components/ui/popover';
 import EnvironmentPanel from './EnvironmentPanel';
+import {
+ 
+  SquareArrowOutUpRight
+} from 'lucide-react';
 
 const TaskPanel = (props) => {
   const { params, api } = props;
@@ -238,10 +242,12 @@ const TaskPanel = (props) => {
                 api.onPanelOpen();
               }
             }}
-            className="px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white"
+           className="h-5 w-5 sm:h-6 sm:w-6 p-0 flex-shrink-0"
             title="Open in new panel"
           >
-            <span>⊞</span>
+            {/* <span>⊞</span> */}
+            <SquareArrowOutUpRight className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+
           </Button>
         )}
       </div>

@@ -32,8 +32,8 @@ const LeftPanel = (props) => {
 
   const environments = [
     { id: 'env1', name: 'Local' },
-    { id: 'env2', name: 'Docker' },
-    { id: 'env3', name: 'E2B' },
+    { id: 'env2', name: 'Docker 02 - (provider-docker)'  },
+    { id: 'env3', name: 'Docker 0212 - (provider-docker)' },
   ];
 
   const tasks = [
