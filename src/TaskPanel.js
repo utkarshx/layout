@@ -4,6 +4,8 @@ import { Button } from './components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './components/ui/tabs';
 import { Card, CardHeader, CardTitle, CardContent } from './components/ui/card';
 import { Input } from './components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from './components/ui/popover';
+import EnvironmentPanel from './EnvironmentPanel';
 
 const TaskPanel = (props) => {
   const { params, api } = props;
@@ -16,8 +18,14 @@ const TaskPanel = (props) => {
   // Floating environment panel state
   const [activeEnvironmentPanel, setActiveEnvironmentPanel] = useState(null);
   
+  // Popover state for environment panel
+  const [isEnvironmentPopoverOpen, setIsEnvironmentPopoverOpen] = useState(false);
+  
   // Check if this is a floating panel or regular panel
   const isFloatingPanel = api?.group?.location?.type === 'floating';
+  
+  // Check if this panel is opened from a popover
+  const isOpenedFromPopover = api?.group?.location?.type === 'popover';
   
   // Chat state for task-specific chat
   const [messages, setMessages] = useState([
@@ -159,20 +167,101 @@ const TaskPanel = (props) => {
     }
   };
 
+  const openEnvironmentPanelInPopOver = () => {
+    setIsEnvironmentPopoverOpen(true);
+  };
+
+  const openTaskInNewPanel = (task) => {
+    console.log('openTaskInNewPanel called:', task);
+    console.log('dockviewApi available:', !!dockviewApi);
+    
+    if (dockviewApi) {
+      const panelId = `task_panel_${task.id}`;
+      console.log('Attempting to add panel:', panelId);
+      
+      try {
+        dockviewApi.addPanel({
+          id: panelId,
+          component: 'TaskPanel',
+          title: task.name,
+          params: { task: task },
+          position: { referencePanel: 'left_panel', direction: 'right' },
+        });
+        console.log('Panel added successfully');
+      } catch (error) {
+        console.error('Error adding panel:', error);
+      }
+    } else {
+      console.error('No dockview API available');
+    }
+  };
+
   return (
-    <div className="p-5 text-white h-full overflow-hidden flex flex-col">
-      <div className="flex items-center mb-3.75 gap-3.75">
-        {/* Show Environment button only in regular panels (not floating panels) */}
-        {environment && !isFloatingPanel && (
+    <div className="text-white h-full overflow-hidden">
+      <div className="p-2.5 border-b border-gray-700 bg-black flex justify-between items-center">
+        <h4 className="m-0">
+          {task ? `${task.name} - Task Details` : 'Task Details'}
+        </h4>
+        {isOpenedFromPopover && (
           <Button
-            onClick={openEnvironmentPanel}
-            className="p-2 px-4 bg-green-600 hover:bg-green-700 text-white rounded cursor-pointer text-sm font-bold flex items-center gap-1.5 transition-colors flex-shrink-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              openTaskInNewPanel(task);
+              // Call onPanelOpen callback if provided (for popover closing)
+              if (api?.onPanelOpen) {
+                api.onPanelOpen();
+              }
+            }}
+            className="px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white"
+            title="Open in new panel"
           >
-            🌍 Environment
+            <span>⊞</span>
           </Button>
         )}
-        <h2 className="m-0 flex-1">{props.api.title}</h2>
       </div>
+      
+      <div className="h-[calc(100%-50px)] p-5 overflow-hidden flex flex-col">
+        <div className="flex items-center mb-3.75 gap-3.75">
+          {/* Show Environment button only in regular panels (not floating panels) */}
+          {environment && !isFloatingPanel && (
+            <Button
+              onClick={openEnvironmentPanel}
+              className="p-2 px-4 bg-green-600 hover:bg-green-700 text-white rounded cursor-pointer text-sm font-bold flex items-center gap-1.5 transition-colors flex-shrink-0"
+            >
+              🌍 Environment
+            </Button>
+          )}
+          {task && (
+            <Popover open={isEnvironmentPopoverOpen} onOpenChange={setIsEnvironmentPopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  onClick={openEnvironmentPanelInPopOver}
+                  className="p-2 px-4 bg-green-600 hover:bg-green-700 text-white rounded cursor-pointer text-sm font-bold flex items-center gap-1.5 transition-colors flex-shrink-0"
+                >
+                  🌍 Environment
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent 
+                className="w-[800px] h-screen p-0 bg-gray-900 border-gray-700"
+                side="left"
+                align="center"
+              >
+                <div className="h-full">
+                  <DockviewApiContext.Provider value={dockviewApi}>
+                    <EnvironmentPanel 
+                      params={{ environment: environment }}
+                      api={{ 
+                        id: 'popover-env-panel',
+                        title: `${environment?.name || 'Environment'} - Environment`,
+                        group: { location: { type: 'popover' } }
+                      }}
+                    />
+                  </DockviewApiContext.Provider>
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
+        </div>
       
       {environment && (
         <div className="bg-gray-900 p-2.5 rounded mb-5 border border-gray-800">
@@ -278,6 +367,7 @@ const TaskPanel = (props) => {
             </div>
           </div>
         )}
+      </div>
       </div>
     </div>
   );

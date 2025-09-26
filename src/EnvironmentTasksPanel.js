@@ -2,12 +2,27 @@ import React, { useContext, useEffect, useState } from 'react';
 import { DockviewApiContext } from './App';
 import { Card, CardHeader, CardTitle, CardContent } from './components/ui/card';
 import { Button } from './components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from './components/ui/popover';
+import TaskPanel from './TaskPanel';
 
 const EnvironmentTasksPanel = (props) => {
-  const { params } = props;
+  const { params, onTaskSelect } = props;
   const { environment } = params || {};
   const dockviewApi = useContext(DockviewApiContext);
-  const [activeFloatingPanels, setActiveFloatingPanels] = useState([]);
+  
+  // Popover state management
+  const [openPopovers, setOpenPopovers] = useState({});
+  
+  // Selected task for split view
+  const [selectedTask, setSelectedTask] = useState(null);
+
+  // Popover management functions
+  const setPopoverOpen = (id, isOpen) => {
+    setOpenPopovers(prev => ({
+      ...prev,
+      [id]: isOpen
+    }));
+  };
 
   const environmentTasks = [
     { id: 'env_task_1', name: 'Initialize Environment', status: 'Completed', priority: 'High' },
@@ -17,59 +32,6 @@ const EnvironmentTasksPanel = (props) => {
     { id: 'env_task_5', name: 'Monitor Performance', status: 'Pending', priority: 'Low' },
   ];
 
-  const openTaskPanel = (task) => {
-    console.log('EnvironmentTasksPanel openTaskPanel called:', task);
-    console.log('dockviewApi available:', !!dockviewApi);
-    
-    if (dockviewApi) {
-      const panelId = `env_task_panel_${task.id}`;
-      console.log('Attempting to add floating panel:', panelId);
-      
-      try {
-        // Check if panel already exists and remove it
-        const existingPanel = dockviewApi.getPanel(panelId);
-        if (existingPanel) {
-          existingPanel.api.close();
-          setActiveFloatingPanels(prev => prev.filter(id => id !== panelId));
-        }
-        
-        // First add the panel to the main dockview
-        const panel = dockviewApi.addPanel({
-          id: panelId,
-          component: 'TaskPanel',
-          title: task.name,
-          params: { task: task, environment: environment },
-        });
-        
-        // Get the current panel's position to calculate right-side placement
-        const currentPanelElement = document.querySelector('[data-panel-id]');
-        const panelRect = currentPanelElement?.getBoundingClientRect();
-        
-        // Position to the right of current panel with full height
-        const x = panelRect ? panelRect.right + 10 : window.innerWidth - 720; // 10px gap, 700px width + some margin
-        const y = 0; // Start from top
-        const width = 700;
-        const height = window.innerHeight; // Full height
-        
-        // Then convert it to a floating group
-        dockviewApi.addFloatingGroup(panel, {
-          width: width,
-          height: height,
-          x: x,
-          y: y,
-        });
-        
-        // Track this floating panel
-        setActiveFloatingPanels(prev => [...prev, panelId]);
-        
-        console.log('Floating panel added successfully at position:', { x, y, width, height });
-      } catch (error) {
-        console.error('Error adding floating panel:', error);
-      }
-    } else {
-      console.error('dockviewApi is not available');
-    }
-  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -89,56 +51,6 @@ const EnvironmentTasksPanel = (props) => {
     }
   };
 
-  // Add click outside to close functionality
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (activeFloatingPanels.length === 0) return;
-      
-      // Check if click is outside any floating panel
-      const floatingPanels = document.querySelectorAll('.dockview-floating-group');
-      let clickedInsidePanel = false;
-      
-      floatingPanels.forEach(panel => {
-        if (panel.contains(event.target)) {
-          clickedInsidePanel = true;
-        }
-      });
-      
-      // If clicked outside all floating panels, close them
-      if (!clickedInsidePanel) {
-        activeFloatingPanels.forEach(panelId => {
-          const panel = dockviewApi?.getPanel(panelId);
-          if (panel) {
-            panel.api.close();
-          }
-        });
-        setActiveFloatingPanels([]);
-      }
-    };
-    
-    // Add event listener with a small delay to avoid immediate closing
-    const timer = setTimeout(() => {
-      document.addEventListener('mousedown', handleClickOutside);
-    }, 100);
-    
-    return () => {
-      clearTimeout(timer);
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [activeFloatingPanels, dockviewApi]);
-
-  // Cleanup when component unmounts
-  useEffect(() => {
-    return () => {
-      // Close all floating panels when component unmounts
-      activeFloatingPanels.forEach(panelId => {
-        const panel = dockviewApi?.getPanel(panelId);
-        if (panel) {
-          panel.api.close();
-        }
-      });
-    };
-  }, [activeFloatingPanels, dockviewApi]);
 
   return (
     <div className="p-5 text-white h-full overflow-y-auto">
@@ -158,8 +70,17 @@ const EnvironmentTasksPanel = (props) => {
           {environmentTasks.map((task) => (
             <div
               key={task.id}
-              onClick={() => openTaskPanel(task)}
-              className="p-3 bg-gray-800 rounded-md cursor-pointer border border-gray-600 transition-all duration-200 hover:bg-gray-700 hover:transform hover:-translate-y-0.5"
+              onClick={() => {
+                setSelectedTask(task);
+                if (onTaskSelect) {
+                  onTaskSelect(task);
+                }
+              }}
+              className={`p-3 rounded-md cursor-pointer border transition-all duration-200 hover:transform hover:-translate-y-0.5 ${
+                selectedTask?.id === task.id 
+                  ? 'bg-blue-800 border-blue-500' 
+                  : 'bg-gray-800 border-gray-600 hover:bg-gray-700'
+              }`}
             >
               <div className="flex justify-between items-center mb-2">
                 <div className="font-bold text-sm">{task.name}</div>
@@ -179,7 +100,7 @@ const EnvironmentTasksPanel = (props) => {
                 </div>
               </div>
               <div className="text-xs text-gray-400">
-                Click to open floating task panel
+                Click to view task details on the right
               </div>
             </div>
           ))}
