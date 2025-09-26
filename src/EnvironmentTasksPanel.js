@@ -1,10 +1,11 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { DockviewApiContext } from './App';
 
 const EnvironmentTasksPanel = (props) => {
   const { params } = props;
   const { environment } = params || {};
   const dockviewApi = useContext(DockviewApiContext);
+  const [activeFloatingPanels, setActiveFloatingPanels] = useState([]);
 
   const environmentTasks = [
     { id: 'env_task_1', name: 'Initialize Environment', status: 'Completed', priority: 'High' },
@@ -20,19 +21,48 @@ const EnvironmentTasksPanel = (props) => {
     
     if (dockviewApi) {
       const panelId = `env_task_panel_${task.id}`;
-      console.log('Attempting to add panel:', panelId);
+      console.log('Attempting to add floating panel:', panelId);
       
       try {
-        dockviewApi.addPanel({
+        // Check if panel already exists and remove it
+        const existingPanel = dockviewApi.getPanel(panelId);
+        if (existingPanel) {
+          existingPanel.api.close();
+          setActiveFloatingPanels(prev => prev.filter(id => id !== panelId));
+        }
+        
+        // First add the panel to the main dockview
+        const panel = dockviewApi.addPanel({
           id: panelId,
           component: 'TaskPanel',
           title: task.name,
           params: { task: task, environment: environment },
-          position: { referencePanel: props.api.id, direction: 'right' },
         });
-        console.log('Panel added successfully');
+        
+        // Get the current panel's position to calculate right-side placement
+        const currentPanelElement = document.querySelector('[data-panel-id]');
+        const panelRect = currentPanelElement?.getBoundingClientRect();
+        
+        // Position to the right of current panel with full height
+        const x = panelRect ? panelRect.right + 10 : window.innerWidth - 720; // 10px gap, 700px width + some margin
+        const y = 0; // Start from top
+        const width = 700;
+        const height = window.innerHeight; // Full height
+        
+        // Then convert it to a floating group
+        dockviewApi.addFloatingGroup(panel, {
+          width: width,
+          height: height,
+          x: x,
+          y: y,
+        });
+        
+        // Track this floating panel
+        setActiveFloatingPanels(prev => [...prev, panelId]);
+        
+        console.log('Floating panel added successfully at position:', { x, y, width, height });
       } catch (error) {
-        console.error('Error adding panel:', error);
+        console.error('Error adding floating panel:', error);
       }
     } else {
       console.error('dockviewApi is not available');
@@ -56,6 +86,57 @@ const EnvironmentTasksPanel = (props) => {
       default: return '#888';
     }
   };
+
+  // Add click outside to close functionality
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (activeFloatingPanels.length === 0) return;
+      
+      // Check if click is outside any floating panel
+      const floatingPanels = document.querySelectorAll('.dockview-floating-group');
+      let clickedInsidePanel = false;
+      
+      floatingPanels.forEach(panel => {
+        if (panel.contains(event.target)) {
+          clickedInsidePanel = true;
+        }
+      });
+      
+      // If clicked outside all floating panels, close them
+      if (!clickedInsidePanel) {
+        activeFloatingPanels.forEach(panelId => {
+          const panel = dockviewApi?.getPanel(panelId);
+          if (panel) {
+            panel.api.close();
+          }
+        });
+        setActiveFloatingPanels([]);
+      }
+    };
+    
+    // Add event listener with a small delay to avoid immediate closing
+    const timer = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+    }, 100);
+    
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [activeFloatingPanels, dockviewApi]);
+
+  // Cleanup when component unmounts
+  useEffect(() => {
+    return () => {
+      // Close all floating panels when component unmounts
+      activeFloatingPanels.forEach(panelId => {
+        const panel = dockviewApi?.getPanel(panelId);
+        if (panel) {
+          panel.api.close();
+        }
+      });
+    };
+  }, [activeFloatingPanels, dockviewApi]);
 
   return (
     <div style={{ padding: '20px', color: 'white', height: '100%', overflowY: 'auto' }}>
@@ -117,7 +198,7 @@ const EnvironmentTasksPanel = (props) => {
                 </div>
               </div>
               <div style={{ fontSize: '12px', color: '#ccc' }}>
-                Click to open task details and chat
+                Click to open floating task panel
               </div>
             </div>
           ))}
