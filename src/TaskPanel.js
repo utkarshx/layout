@@ -24,6 +24,21 @@ const TaskPanel = (props) => {
   // Popover state for environment panel
   const [isEnvironmentPopoverOpen, setIsEnvironmentPopoverOpen] = useState(false);
   
+  // Track if environment is selected
+  const [isEnvironmentSelected, setIsEnvironmentSelected] = useState(!!environment);
+  
+  // Update environment selection state when environment prop changes
+  useEffect(() => {
+    setIsEnvironmentSelected(!!environment);
+  }, [environment]);
+  
+  // Reset environment selection when task changes (optional)
+  useEffect(() => {
+    if (!environment) {
+      setIsEnvironmentSelected(false);
+    }
+  }, [task, environment]);
+  
   // Check if this is a floating panel or regular panel
   const isFloatingPanel = api?.group?.location?.type === 'floating';
   
@@ -121,6 +136,7 @@ const TaskPanel = (props) => {
   const openEnvironmentPanel = (environment) => {
     if (onEnvSelect) {
       onEnvSelect(environment);
+      setIsEnvironmentSelected(true);
     }
     // if (!environment || !dockviewApi) return;
     
@@ -176,6 +192,7 @@ const TaskPanel = (props) => {
   const openEnvironmentPanelInPopOver = (environment) => {
     if (onEnvSelect) {
       onEnvSelect(environment);
+      setIsEnvironmentSelected(true);
     }
     // setIsEnvironmentPopoverOpen(true);
   };
@@ -231,16 +248,16 @@ const TaskPanel = (props) => {
       
       <div className="h-[calc(100%-50px)] p-5 overflow-hidden flex flex-col">
         <div className="flex items-center mb-3.75 gap-3.75">
-          {/* Show Environment button only in regular panels (not floating panels) */}
-          {environment && !isFloatingPanel && (
+          {/* Show Environment button only if environment is not selected and not in floating panels */}
+          {!isEnvironmentSelected && environment && !isFloatingPanel && (
             <Button
-              onClick={openEnvironmentPanel}
+              onClick={() => openEnvironmentPanel(environment)}
               className="p-2 px-4 bg-green-600 hover:bg-green-700 text-white rounded cursor-pointer text-sm font-bold flex items-center gap-1.5 transition-colors flex-shrink-0"
             >
               Environment
             </Button>
           )}
-          {task && (
+          {!isEnvironmentSelected && task && (
             <Popover open={isEnvironmentPopoverOpen} >
               <PopoverTrigger asChild>
                 <Button
@@ -252,6 +269,7 @@ const TaskPanel = (props) => {
                    let env= { id: 'env1', name: 'Development Environment' }
               
                     onEnvSelect(env);
+                    setIsEnvironmentSelected(true);
                   }
                 }}
                   // onClick={openEnvironmentPanelInPopOver}

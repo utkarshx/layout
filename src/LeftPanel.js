@@ -99,6 +99,51 @@ const LeftPanel = (props) => {
     );
   };
 
+    // Split Environment Panel Component
+    const SplitTaskPanel = ({ environment, task }) => {
+      const [selectedEnv, setSelectedEnv] = useState(null);
+      return (
+        <div className="h-full flex">
+          {/* Environment Panel - Left Side */}
+          { selectedEnv && (
+            <div className='w-1/2' >
+              <DockviewApiContext.Provider value={dockviewApi}>
+                <EnvironmentPanel
+                  params={{ environment: selectedEnv }}
+                  api={{
+                    id: 'popover-env-panel',
+                    title: `${selectedEnv?.name || 'Environment'} - Environment`,
+                    group: { location: { type: 'popover' } },
+                    onTaskSelect: () => { } // Task selection handled differently in split view
+                  }}
+                />
+              </DockviewApiContext.Provider>
+            </div>
+          )}
+  
+          {/* Task Panel - Right Side */}
+  
+          <div className={`${selectedEnv ? 'w-1/2' : 'w-full'} border-r border-gray-700`}>
+            <DockviewApiContext.Provider value={dockviewApi}>
+              <TaskPanel
+                params={{ task: task, environment: selectedEnv ? environment : undefined }}
+                api={{
+                  id: 'popover-task-panel',
+                  title: `${task?.name || 'Task'} - Task`,
+                  group: { location: { type: 'popover' } },
+                  // onPanelOpen: () => setTaskPopoverOpen(false),
+                  onEnvSelect:setSelectedEnv
+                  
+                }}
+              />
+            </DockviewApiContext.Provider>
+          </div>
+  
+        </div>
+        
+      );
+    };
+
 
 
   const openEnvironmentInNewPanel = (env) => {
@@ -221,12 +266,13 @@ const LeftPanel = (props) => {
                     </div>
                   </PopoverTrigger>
                   <PopoverContent 
-              className="w-[400px] h-screen p-0 bg-gray-900 border-gray-700"
+              className="w-[800px] h-screen p-0 bg-gray-900 border-gray-700"
               side="left"
               align="center"
             >
                <div className="h-full">
-                 <DockviewApiContext.Provider value={dockviewApi}>
+                <SplitTaskPanel  task={task} ></SplitTaskPanel>
+                 {/* <DockviewApiContext.Provider value={dockviewApi}>
                    <TaskPanel 
                      params={{ task: task }}
                      api={{ 
@@ -236,7 +282,7 @@ const LeftPanel = (props) => {
                        onPanelOpen: () => setPopoverOpen(`task_${task.id}`, false)
                      }}
                    />
-                 </DockviewApiContext.Provider>
+                 </DockviewApiContext.Provider> */}
                </div>
             </PopoverContent>
                 </Popover>
