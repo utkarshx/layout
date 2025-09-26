@@ -5,6 +5,7 @@
  import { Input } from './components/ui/input';
  import { Popover, PopoverTrigger, PopoverContent } from './components/ui/popover';
  import TaskPanel from './TaskPanel';
+ import EnvironmentPanel from './EnvironmentPanel';
 
 const ChatPanel = (props) => {
   const dockviewApi = useContext(DockviewApiContext);
@@ -24,6 +25,7 @@ const ChatPanel = (props) => {
   const [activeChatId, setActiveChatId] = useState('chat1');
   const [inputMessage, setInputMessage] = useState('');
   const [taskPopoverOpen, setTaskPopoverOpen] = useState(false);
+  const [showEnvironmentInTaskPopover, setShowEnvironmentInTaskPopover] = useState(false);
   const messagesEndRef = useRef(null);
 
   const activeChat = chats.find(chat => chat.id === activeChatId);
@@ -130,6 +132,45 @@ const ChatPanel = (props) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  // Split Environment Panel Component
+  const SplitEnvironmentPanel = ({ environment, task, showEnvironment }) => {
+    return (
+      <div className="h-full flex">
+        {/* Environment Panel - Left Side */}
+        {showEnvironment && (
+          <div className="w-1/2 border-r border-gray-700">
+            <DockviewApiContext.Provider value={dockviewApi}>
+              <EnvironmentPanel
+                params={{ environment: environment }}
+                api={{
+                  id: 'popover-env-panel',
+                  title: `${environment?.name || 'Environment'} - Environment`,
+                  group: { location: { type: 'popover' } },
+                  onTaskSelect: () => {} // Task selection handled differently in split view
+                }}
+              />
+            </DockviewApiContext.Provider>
+          </div>
+        )}
+
+        {/* Task Panel - Right Side */}
+        <div className={showEnvironment ? "w-1/2" : "w-full"}>
+          <DockviewApiContext.Provider value={dockviewApi}>
+            <TaskPanel
+              params={{ task: task, environment: showEnvironment ? environment : undefined }}
+              api={{
+                id: 'popover-task-panel',
+                title: `${task?.name || 'Task'} - Task`,
+                group: { location: { type: 'popover' } },
+                onPanelOpen: () => setTaskPopoverOpen(false)
+              }}
+            />
+          </DockviewApiContext.Provider>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="p-5 text-white h-[80%] overflow-hidden flex flex-col">
       
@@ -186,22 +227,16 @@ const ChatPanel = (props) => {
               </Button>
             </PopoverTrigger>
             <PopoverContent
-              className="w-[800px] h-screen p-0 bg-gray-900 border-gray-700"
+              className={showEnvironmentInTaskPopover ? "w-[1600px] h-screen p-0 bg-gray-900 border-gray-700" : "w-[800px] h-screen p-0 bg-gray-900 border-gray-700"}
               side="left"
               align="center"
             >
               <div className="h-full">
-                <DockviewApiContext.Provider value={dockviewApi}>
-                  <TaskPanel
-                    params={{ task: { id: activeChat.id, name: activeChat.title } }}
-                    api={{
-                      id: 'popover-task-panel',
-                      title: `${activeChat.title} - Task`,
-                      group: { location: { type: 'popover' } },
-                      onPanelOpen: () => setTaskPopoverOpen(false)
-                    }}
-                  />
-                </DockviewApiContext.Provider>
+                <SplitEnvironmentPanel 
+                  environment={{ id: 'env1', name: 'Development Environment' }} 
+                  task={{ id: activeChat.id, name: activeChat.title }} 
+                  showEnvironment={showEnvironmentInTaskPopover}
+                />
               </div>
             </PopoverContent>
           </Popover>
