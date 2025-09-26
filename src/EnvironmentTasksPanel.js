@@ -104,23 +104,7 @@ const EnvironmentTasksPanel = (props) => {
         </div>
       </div>
       
-      <div className="mt-6">
-        <h4 className="mb-3 text-sm font-medium">Task Statistics</h4>
-        <div className="grid grid-cols-3 gap-3">
-          <div className="bg-gray-800 p-3 rounded text-center">
-            <div className="text-xl font-bold text-green-500">1</div>
-            <div className="text-xs text-gray-400">Completed</div>
-          </div>
-          <div className="bg-gray-800 p-3 rounded text-center">
-            <div className="text-xl font-bold text-orange-500">1</div>
-            <div className="text-xs text-gray-400">In Progress</div>
-          </div>
-          <div className="bg-gray-800 p-3 rounded text-center">
-            <div className="text-xl font-bold text-gray-500">3</div>
-            <div className="text-xs text-gray-400">Pending</div>
-          </div>
-        </div>
-      </div>
+
     </div>
   );
 };

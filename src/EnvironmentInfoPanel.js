@@ -78,64 +78,9 @@ const EnvironmentInfoPanel = (props) => {
         </div>
       </div>
       
-      <div className="mb-6">
-        <h4 className="mb-3 text-sm font-medium text-blue-400">Services</h4>
-        <div className="space-y-2">
-          {services.map((service, index) => (
-            <div key={index} className="p-3">
-              <div className="flex justify-between items-center mb-2">
-                <div className="font-medium text-sm">{service.name}</div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs px-2 py-1 rounded text-white" style={{ backgroundColor: getStatusColor(service.status) }}>
-                    {service.status}
-                  </span>
-                  <span className="text-xs text-gray-400">
-                    {service.version}
-                  </span>
-                </div>
-              </div>
-              <div className="flex gap-4">
-                <div className="flex items-center gap-1">
-                  <span className="text-xs text-gray-400">CPU:</span>
-                  <span className="text-xs font-medium" style={{ color: getResourceColor(service.cpu) }}>
-                    {service.cpu}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-xs text-gray-400">Memory:</span>
-                  <span className="text-xs font-medium" style={{ color: getResourceColor(service.memory) }}>
-                    {service.memory}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+     
       
-      <div className="mb-6">
-        <h4 className="mb-3 text-sm font-medium text-blue-400">Additional Information</h4>
-        <div className="flex gap-4">
-          <div className="text-center">
-            <div className="text-lg font-bold text-green-500">
-              {environmentData.uptime}
-            </div>
-            <div className="text-xs text-gray-400">Uptime</div>
-          </div>
-          <div className="text-center">
-            <div className="text-lg font-bold text-orange-500">
-              {environmentData.cost}
-            </div>
-            <div className="text-xs text-gray-400">Monthly Cost</div>
-          </div>
-          <div className="text-center">
-            <div className="text-lg font-bold text-blue-500">
-              {services.length}
-            </div>
-            <div className="text-xs text-gray-400">Services</div>
-          </div>
-        </div>
-      </div>
+ 
       
       <div className="text-center">
         <button className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded mr-2">
