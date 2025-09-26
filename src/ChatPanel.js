@@ -1,4 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Button } from './components/ui/button';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from './components/ui/tabs';
+import { Input } from './components/ui/input';
 
 const ChatPanel = (props) => {
   // Multiple chats state
@@ -100,120 +103,52 @@ const ChatPanel = (props) => {
   };
 
   return (
-    <div style={{ 
-      padding: '20px', 
-      color: 'white', 
-      height: '80%', 
-      overflow: 'hidden', 
-      display: 'flex', 
-      flexDirection: 'column' 
-    }}>
+    <div className="p-5 text-white h-[80%] overflow-hidden flex flex-col">
       
       {/* Chat Tabs */}
-      <div style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        marginBottom: '15px',
-        borderBottom: '1px solid #444',
-        paddingBottom: '10px'
-      }}>
-        <div style={{ display: 'flex', gap: '2px', flex: 1 }}>
+      <div className="flex items-center mb-3.75 border-b border-gray-700 pb-2.5">
+        <div className="flex gap-0.5 flex-1">
           {chats.map((chat) => (
-            <div
+            <Button
               key={chat.id}
               onClick={() => switchChat(chat.id)}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: chat.id === activeChatId ? '#007acc' : '#2a2a2a',
-                color: 'white',
-                border: '1px solid #444',
-                borderRadius: '4px 4px 0 0',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: chat.id === activeChatId ? 'bold' : 'normal',
-                transition: 'background-color 0.2s',
-              }}
-              onMouseEnter={(e) => {
-                if (chat.id !== activeChatId) {
-                  e.target.style.backgroundColor = '#3a3a3a';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (chat.id !== activeChatId) {
-                  e.target.style.backgroundColor = '#2a2a2a';
-                }
-              }}
+              className={`p-2 px-4 text-sm border border-gray-700 rounded-t cursor-pointer transition-colors ${
+                chat.id === activeChatId 
+                  ? 'bg-blue-600 font-bold' 
+                  : 'bg-gray-800 hover:bg-gray-700'
+              }`}
             >
               {chat.title}
-            </div>
+            </Button>
           ))}
         </div>
         
         {/* Add Chat Button */}
-        <div
+        <Button
           onClick={addNewChat}
-          style={{
-            padding: '8px 12px',
-            backgroundColor: '#4CAF50',
-            color: 'white',
-            border: '1px solid #444',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: 'bold',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            transition: 'background-color 0.2s',
-          }}
-          onMouseEnter={(e) => e.target.style.backgroundColor = '#45a049'}
-          onMouseLeave={(e) => e.target.style.backgroundColor = '#4CAF50'}
+          className="p-2 px-3 bg-green-600 hover:bg-green-700 text-white border border-gray-700 rounded cursor-pointer text-sm font-bold flex items-center gap-1.5 transition-colors"
           title="Add new chat"
         >
           <span>+</span>
           <span>Add Chat</span>
-        </div>
+        </Button>
       </div>
       
       {/* Chat Messages Container */}
-      <div style={{ 
-        flex: 1, 
-        overflowY: 'auto', 
-        backgroundColor: '#1a1a1a', 
-        borderRadius: '8px', 
-        padding: '15px',
-        marginBottom: '15px',
-        border: '1px solid #333'
-      }}>
+      <div className="flex-1 overflow-y-auto bg-gray-900 rounded-lg p-3.75 mb-3.75 border border-gray-800">
         {activeChat?.messages.map((message) => (
           <div
             key={message.id}
-            style={{
-              marginBottom: '12px',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: message.sender === 'user' ? 'flex-end' : 'flex-start',
-            }}
+            className="mb-3 flex flex-col"
+            style={{ alignItems: message.sender === 'user' ? 'flex-end' : 'flex-start' }}
           >
             <div
-              style={{
-                maxWidth: '70%',
-                padding: '8px 12px',
-                borderRadius: '12px',
-                backgroundColor: message.sender === 'user' ? '#007acc' : '#333',
-                color: 'white',
-                wordWrap: 'break-word',
-              }}
+              className="max-w-[70%] p-2 px-3 rounded-xl text-white break-words"
+              style={{ backgroundColor: message.sender === 'user' ? '#007acc' : '#333' }}
             >
               {message.text}
             </div>
-            <div
-              style={{
-                fontSize: '11px',
-                color: '#888',
-                marginTop: '4px',
-              }}
-            >
+            <div className="text-xs text-gray-500 mt-1">
               {formatTime(message.timestamp)}
             </div>
           </div>
@@ -222,59 +157,26 @@ const ChatPanel = (props) => {
       </div>
       
       {/* Input Area */}
-      <div style={{ display: 'flex', gap: '10px' }}>
+      <div className="flex gap-2.5">
         <textarea
           value={inputMessage}
           onChange={(e) => setInputMessage(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Type your message..."
-          style={{
-            flex: 1,
-            padding: '10px',
-            backgroundColor: '#2a2a2a',
-            border: '1px solid #444',
-            borderRadius: '6px',
-            color: 'white',
-            resize: 'none',
-            fontSize: '14px',
-            fontFamily: 'inherit',
-          }}
+          className="flex-1 p-2.5 bg-gray-800 border border-gray-700 rounded text-white resize-none text-sm font-inherit"
           rows={2}
         />
-        <button
+        <Button
           onClick={handleSendMessage}
           disabled={!inputMessage.trim()}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: '#007acc',
-            color: 'white',
-            border: 'none',
-            borderRadius: '6px',
-            cursor: inputMessage.trim() ? 'pointer' : 'not-allowed',
-            fontSize: '14px',
-            fontWeight: 'bold',
-            transition: 'background-color 0.2s',
-          }}
-          onMouseEnter={(e) => {
-            if (inputMessage.trim()) {
-              e.target.style.backgroundColor = '#005a9e';
-            }
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.backgroundColor = '#007acc';
-          }}
+          className="p-2.5 px-5 bg-blue-600 hover:bg-blue-700 text-white rounded cursor-pointer text-sm font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Send
-        </button>
+        </Button>
       </div>
       
       {/* Chat Info */}
-      <div style={{ 
-        marginTop: '10px', 
-        fontSize: '12px', 
-        color: '#888', 
-        textAlign: 'center' 
-      }}>
+      <div className="mt-2.5 text-xs text-gray-500 text-center">
         Chat Panel • Press Enter to send • Shift+Enter for new line
       </div>
     </div>

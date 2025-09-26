@@ -57,18 +57,14 @@ const EnvironmentPanel = (props) => {
   };
 
   return (
-    <div style={{ color: 'white', height: '100%', overflow: 'hidden' }}>
-      <div style={{ 
-        padding: '10px', 
-        borderBottom: '1px solid #444',
-        backgroundColor: '#0a0a0a'
-      }}>
-        <h4 style={{ margin: 0 }}>
+    <div className="text-white h-full overflow-hidden">
+      <div className="p-2.5 border-b border-gray-700 bg-black">
+        <h4 className="m-0">
           {environment ? `${environment.name} - Environment Details` : 'Environment Details'}
         </h4>
       </div>
       
-      <div style={{ height: 'calc(100% - 50px)' }}>
+      <div className="h-[calc(100%-50px)]">
         <DockviewReact
           components={nestedComponents}
           onReady={onNestedReady}

@@ -1,5 +1,9 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import { DockviewApiContext } from './App';
+import { Button } from './components/ui/button';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from './components/ui/tabs';
+import { Card, CardHeader, CardTitle, CardContent } from './components/ui/card';
+import { Input } from './components/ui/input';
 
 const TaskPanel = (props) => {
   const { params, api } = props;
@@ -156,126 +160,45 @@ const TaskPanel = (props) => {
   };
 
   return (
-    <div style={{ padding: '20px', color: 'white', height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px', gap: '15px' }}>
+    <div className="p-5 text-white h-full overflow-hidden flex flex-col">
+      <div className="flex items-center mb-3.75 gap-3.75">
         {/* Show Environment button only in regular panels (not floating panels) */}
         {environment && !isFloatingPanel && (
-          <button
+          <Button
             onClick={openEnvironmentPanel}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: '#4CAF50',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: 'bold',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              transition: 'background-color 0.2s',
-              flexShrink: 0,
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.backgroundColor = '#45a049';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.backgroundColor = '#4CAF50';
-            }}
+            className="p-2 px-4 bg-green-600 hover:bg-green-700 text-white rounded cursor-pointer text-sm font-bold flex items-center gap-1.5 transition-colors flex-shrink-0"
           >
             🌍 Environment
-          </button>
+          </Button>
         )}
-        <h2 style={{ margin: 0, flex: 1 }}>{props.api.title}</h2>
+        <h2 className="m-0 flex-1">{props.api.title}</h2>
       </div>
       
       {environment && (
-        <div style={{ 
-          backgroundColor: '#1a1a1a', 
-          padding: '10px', 
-          borderRadius: '4px', 
-          marginBottom: '20px',
-          border: '1px solid #333'
-        }}>
+        <div className="bg-gray-900 p-2.5 rounded mb-5 border border-gray-800">
           <strong>Environment:</strong> {environment.name}
         </div>
       )}
       
       {/* Tabs */}
-      <div style={{ 
-        display: 'flex', 
-        marginBottom: '20px',
-        borderBottom: '1px solid #444',
-        paddingBottom: '10px'
-      }}>
-        <div
-          onClick={() => setActiveTab('detail')}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: activeTab === 'detail' ? '#007acc' : '#2a2a2a',
-            color: 'white',
-            border: '1px solid #444',
-            borderRadius: '4px 4px 0 0',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: activeTab === 'detail' ? 'bold' : 'normal',
-            marginRight: '4px',
-            transition: 'background-color 0.2s',
-          }}
-          onMouseEnter={(e) => {
-            if (activeTab !== 'detail') {
-              e.target.style.backgroundColor = '#3a3a3a';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (activeTab !== 'detail') {
-              e.target.style.backgroundColor = '#2a2a2a';
-            }
-          }}
-        >
-          Task Detail
-        </div>
-        
-        <div
-          onClick={() => setActiveTab('chat')}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: activeTab === 'chat' ? '#007acc' : '#2a2a2a',
-            color: 'white',
-            border: '1px solid #444',
-            borderRadius: '4px 4px 0 0',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: activeTab === 'chat' ? 'bold' : 'normal',
-            transition: 'background-color 0.2s',
-          }}
-          onMouseEnter={(e) => {
-            if (activeTab !== 'chat') {
-              e.target.style.backgroundColor = '#3a3a3a';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (activeTab !== 'chat') {
-              e.target.style.backgroundColor = '#2a2a2a';
-            }
-          }}
-        >
-          Chat
-        </div>
-      </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-5">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="detail" className="data-[state=active]:bg-blue-600">Task Detail</TabsTrigger>
+          <TabsTrigger value="chat" className="data-[state=active]:bg-blue-600">Chat</TabsTrigger>
+        </TabsList>
+      </Tabs>
       
       {/* Tab Content */}
-      <div style={{ flex: 1, overflowY: 'auto' }}>
+      <div className="flex-1 overflow-y-auto">
         {activeTab === 'detail' && (
           <div>
-            <div style={{ marginBottom: '20px' }}>
-              <h3 style={{ marginBottom: '10px' }}>Task Details</h3>
+            <div className="mb-5">
+              <h3 className="mb-2.5">Task Details</h3>
               <p>This panel contains detailed information and controls for the selected task.</p>
               {task && (
-                <div style={{ marginTop: '15px' }}>
+                <div className="mt-3.75">
                   <p><strong>Task Name:</strong> {task.name}</p>
-                  <p><strong>Status:</strong> <span style={{ color: '#FF9800' }}>In Progress</span></p>
+                  <p><strong>Status:</strong> <span className="text-orange-500">In Progress</span></p>
                   <p><strong>Priority:</strong> High</p>
                   <p><strong>Assigned to:</strong> John Doe</p>
                   <p><strong>Created:</strong> 2024-01-15</p>
@@ -284,46 +207,21 @@ const TaskPanel = (props) => {
               )}
             </div>
             
-            <div style={{ marginBottom: '20px' }}>
-              <h4 style={{ marginBottom: '8px' }}>Actions</h4>
-              <button 
-                style={{
-                  padding: '8px 16px',
-                  margin: '4px',
-                  backgroundColor: '#007acc',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer'
-                }}
-              >
+            <div className="mb-5">
+              <h4 className="mb-2">Actions</h4>
+              <Button className="m-1 bg-blue-600 hover:bg-blue-700 text-white rounded cursor-pointer">
                 Execute Task
-              </button>
-              <button 
-                style={{
-                  padding: '8px 16px',
-                  margin: '4px',
-                  backgroundColor: '#666',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer'
-                }}
-              >
+              </Button>
+              <Button className="m-1 bg-gray-600 hover:bg-gray-700 text-white rounded cursor-pointer">
                 View Logs
-              </button>
+              </Button>
             </div>
             
             <div>
-              <h4 style={{ marginBottom: '8px' }}>Status</h4>
-              <div style={{ 
-                backgroundColor: '#2a2a2a', 
-                padding: '10px', 
-                borderRadius: '4px',
-                border: '1px solid #444'
-              }}>
-                <div style={{ color: '#4CAF50' }}>● Ready</div>
-                <div style={{ fontSize: '12px', color: '#ccc', marginTop: '4px' }}>
+              <h4 className="mb-2">Status</h4>
+              <div className="bg-gray-800 p-2.5 rounded border border-gray-700">
+                <div className="text-green-500">● Ready</div>
+                <div className="text-xs text-gray-400 mt-1">
                   Last executed: Never
                 </div>
               </div>
@@ -332,46 +230,22 @@ const TaskPanel = (props) => {
         )}
         
         {activeTab === 'chat' && (
-          <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <div className="flex flex-col h-full">
             {/* Chat Messages Container */}
-            <div style={{ 
-              flex: 1, 
-              overflowY: 'auto', 
-              backgroundColor: '#1a1a1a', 
-              borderRadius: '8px', 
-              padding: '15px',
-              marginBottom: '15px',
-              border: '1px solid #333'
-            }}>
+            <div className="flex-1 overflow-y-auto bg-gray-900 rounded-lg p-3.75 mb-3.75 border border-gray-800">
               {messages.map((message) => (
                 <div
                   key={message.id}
-                  style={{
-                    marginBottom: '12px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: message.sender === 'user' ? 'flex-end' : 'flex-start',
-                  }}
+                  className="mb-3 flex flex-col items-end"
+                  style={{ alignItems: message.sender === 'user' ? 'flex-end' : 'flex-start' }}
                 >
                   <div
-                    style={{
-                      maxWidth: '70%',
-                      padding: '8px 12px',
-                      borderRadius: '12px',
-                      backgroundColor: message.sender === 'user' ? '#007acc' : '#333',
-                      color: 'white',
-                      wordWrap: 'break-word',
-                    }}
+                    className="max-w-[70%] p-2 px-3 rounded-xl text-white break-words"
+                    style={{ backgroundColor: message.sender === 'user' ? '#007acc' : '#333' }}
                   >
                     {message.text}
                   </div>
-                  <div
-                    style={{
-                      fontSize: '11px',
-                      color: '#888',
-                      marginTop: '4px',
-                    }}
-                  >
+                  <div className="text-xs text-gray-500 mt-1">
                     {formatTime(message.timestamp)}
                   </div>
                 </div>
@@ -380,59 +254,26 @@ const TaskPanel = (props) => {
             </div>
             
             {/* Input Area */}
-            <div style={{ display: 'flex', gap: '10px' }}>
+            <div className="flex gap-2.5">
               <textarea
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Type your message..."
-                style={{
-                  flex: 1,
-                  padding: '10px',
-                  backgroundColor: '#2a2a2a',
-                  border: '1px solid #444',
-                  borderRadius: '6px',
-                  color: 'white',
-                  resize: 'none',
-                  fontSize: '14px',
-                  fontFamily: 'inherit',
-                }}
+                className="flex-1 p-2.5 bg-gray-800 border border-gray-700 rounded text-white resize-none text-sm font-inherit"
                 rows={2}
               />
-              <button
+              <Button
                 onClick={handleSendMessage}
                 disabled={!inputMessage.trim()}
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: '#007acc',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: inputMessage.trim() ? 'pointer' : 'not-allowed',
-                  fontSize: '14px',
-                  fontWeight: 'bold',
-                  transition: 'background-color 0.2s',
-                }}
-                onMouseEnter={(e) => {
-                  if (inputMessage.trim()) {
-                    e.target.style.backgroundColor = '#005a9e';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = '#007acc';
-                }}
+                className="p-2.5 px-5 bg-blue-600 hover:bg-blue-700 text-white rounded cursor-pointer text-sm font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Send
-              </button>
+              </Button>
             </div>
             
             {/* Chat Info */}
-            <div style={{ 
-              marginTop: '10px', 
-              fontSize: '12px', 
-              color: '#888', 
-              textAlign: 'center' 
-            }}>
+            <div className="mt-2.5 text-xs text-gray-500 text-center">
               Task Chat • Press Enter to send • Shift+Enter for new line
             </div>
           </div>

@@ -1,5 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { DockviewApiContext } from './App';
+import { Button } from './components/ui/button';
+import { Card, CardHeader, CardTitle, CardContent } from './components/ui/card';
 
 const LeftPanel = (props) => {
   const { api } = props;
@@ -152,58 +154,33 @@ const LeftPanel = (props) => {
 
   return (
     <div 
-      style={{ padding: '10px', color: 'white', height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'row' }}
+      className="p-2.5 text-white h-full overflow-hidden flex flex-row"
       onMouseMove={handleResize}
       onMouseUp={stopResize}
       onMouseLeave={stopResize}
     >
       {/* Left Side - Environments and Tasks */}
-      <div style={{ 
-        flex: `0 0 ${panelWidths.left}px`, 
-        overflowY: 'auto', 
-        paddingRight: '10px',
-        borderRight: (selectedEnvironment || selectedTask) ? '1px solid #444' : 'none'
-      }}>
+      <div className={`flex-shrink-0 overflow-y-auto pr-2.5 ${(selectedEnvironment || selectedTask) ? 'border-r border-gray-700' : ''}`} 
+           style={{ width: `${panelWidths.left}px` }}>
         {/* Environments Accordion */}
-        <div style={{ marginBottom: '20px' }}>
+        <div className="mb-5">
           <div
             onClick={() => toggleSection('environments')}
-            style={{
-              padding: '10px 12px',
-              backgroundColor: '#1a1a1a',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              border: '1px solid #444',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '4px',
-            }}
-            onMouseEnter={(e) => e.target.style.backgroundColor = '#2a2a2a'}
-            onMouseLeave={(e) => e.target.style.backgroundColor = '#1a1a1a'}
+            className="p-2.5 px-3 bg-gray-900 rounded cursor-pointer border border-gray-700 flex justify-between items-center mb-1 hover:bg-gray-800 transition-colors"
           >
-            <h3 style={{ margin: 0 }}>Environments</h3>
-            <span style={{ fontSize: '12px' }}>
+            <h3 className="m-0">Environments</h3>
+            <span className="text-xs">
               {expandedSections.environments ? '▼' : '▶'}
             </span>
           </div>
           
           {expandedSections.environments && (
-            <div style={{ paddingLeft: '8px' }}>
+            <div className="pl-2">
               {environments.map((env) => (
                 <div
                   key={env.id}
                   onClick={() => openEnvironmentPanel(env)}
-                  style={{
-                    padding: '8px 12px',
-                    margin: '4px 0',
-                    backgroundColor: '#2a2a2a',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    border: '1px solid #444',
-                  }}
-                  onMouseEnter={(e) => e.target.style.backgroundColor = '#3a3a3a'}
-                  onMouseLeave={(e) => e.target.style.backgroundColor = '#2a2a2a'}
+                  className="p-2 px-3 my-1 bg-gray-800 rounded cursor-pointer border border-gray-700 hover:bg-gray-700 transition-colors"
                 >
                   {env.name}
                 </div>
@@ -216,42 +193,21 @@ const LeftPanel = (props) => {
         <div>
           <div
             onClick={() => toggleSection('tasks')}
-            style={{
-              padding: '10px 12px',
-              backgroundColor: '#1a1a1a',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              border: '1px solid #444',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '4px',
-            }}
-            onMouseEnter={(e) => e.target.style.backgroundColor = '#2a2a2a'}
-            onMouseLeave={(e) => e.target.style.backgroundColor = '#1a1a1a'}
+            className="p-2.5 px-3 bg-gray-900 rounded cursor-pointer border border-gray-700 flex justify-between items-center mb-1 hover:bg-gray-800 transition-colors"
           >
-            <h3 style={{ margin: 0 }}>Tasks</h3>
-            <span style={{ fontSize: '12px' }}>
+            <h3 className="m-0">Tasks</h3>
+            <span className="text-xs">
               {expandedSections.tasks ? '▼' : '▶'}
             </span>
           </div>
           
           {expandedSections.tasks && (
-            <div style={{ paddingLeft: '8px' }}>
+            <div className="pl-2">
               {tasks.map((task) => (
                 <div
                   key={task.id}
                   onClick={() => openTaskPanel(task)}
-                  style={{
-                    padding: '8px 12px',
-                    margin: '4px 0',
-                    backgroundColor: '#2a2a2a',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    border: '1px solid #444',
-                  }}
-                  onMouseEnter={(e) => e.target.style.backgroundColor = '#3a3a3a'}
-                  onMouseLeave={(e) => e.target.style.backgroundColor = '#2a2a2a'}
+                  className="p-2 px-3 my-1 bg-gray-800 rounded cursor-pointer border border-gray-700 hover:bg-gray-700 transition-colors"
                 >
                   {task.name}
                 </div>
@@ -264,121 +220,57 @@ const LeftPanel = (props) => {
       {/* First Resize Divider - Between List and Environment */}
       {(selectedEnvironment || selectedTask) && (
         <div
-          style={{
-            width: '5px',
-            backgroundColor: '#444',
-            cursor: 'col-resize',
-            position: 'relative',
-            flexShrink: 0
-          }}
+          className="w-1.25 bg-gray-700 cursor-col-resize relative flex-shrink-0 hover:bg-gray-600 transition-colors"
           onMouseDown={() => startResize('left')}
-          onMouseEnter={(e) => e.target.style.backgroundColor = '#666'}
-          onMouseLeave={(e) => e.target.style.backgroundColor = '#444'}
         >
-          <div style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '2px',
-            height: '20px',
-            backgroundColor: '#888',
-            borderRadius: '1px'
-          }} />
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-0.5 h-5 bg-gray-500 rounded-sm" />
         </div>
       )}
       
       {/* Right Side - Environment Detail Panel */}
       {selectedEnvironment && (
-        <div style={{ 
-          flex: selectedEnvironmentTask ? `0 0 ${panelWidths.middle}px` : 1, 
-          paddingLeft: '20px',
-          overflowY: 'auto',
-          borderRight: selectedEnvironmentTask ? '1px solid #444' : 'none'
-        }}>
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center',
-            marginBottom: '15px',
-            paddingBottom: '10px',
-            borderBottom: '1px solid #444'
-          }}>
-            <h3 style={{ margin: 0 }}>{selectedEnvironment.name}</h3>
-            <div
+        <div className={`${selectedEnvironmentTask ? 'flex-shrink-0' : 'flex-1'} pl-5 overflow-y-auto ${selectedEnvironmentTask ? 'border-r border-gray-700' : ''}`} 
+             style={{ width: selectedEnvironmentTask ? `${panelWidths.middle}px` : 'auto' }}>
+          <div className="flex justify-between items-center mb-3.75 pb-2.5 border-b border-gray-700">
+            <h3 className="m-0">{selectedEnvironment.name}</h3>
+            <Button
               onClick={(e) => {
                 e.stopPropagation();
                 openEnvironmentInNewPanel(selectedEnvironment);
               }}
-              style={{
-                cursor: 'pointer',
-                padding: '6px 10px',
-                borderRadius: '4px',
-                backgroundColor: '#007acc',
-                color: 'white',
-                fontSize: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = '#005a9e'}
-              onMouseLeave={(e) => e.target.style.backgroundColor = '#007acc'}
+              className="cursor-pointer px-2.5 py-1.5 rounded text-xs flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white"
               title="Open in new panel"
             >
               <span>⊞</span>
               <span>Open in Panel</span>
-            </div>
+            </Button>
           </div>
           
-          <div style={{ fontSize: '14px', lineHeight: '1.5' }}>
+          <div className="text-sm leading-relaxed">
             <p><strong>Type:</strong> Development Environment</p>
-            <p><strong>Status:</strong> <span style={{ color: '#4CAF50' }}>Active</span></p>
+            <p><strong>Status:</strong> <span className="text-green-500">Active</span></p>
             <p><strong>URL:</strong> https://dev.example.com</p>
             <p><strong>Database:</strong> PostgreSQL</p>
             <p><strong>Services:</strong> API, Web, Database</p>
             
-            <div style={{ marginTop: '15px' }}>
-              <h4 style={{ marginBottom: '8px' }}>Environment Tasks</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <div style={{ 
-                  padding: '8px 12px', 
-                  backgroundColor: '#2a2a2a', 
-                  borderRadius: '4px',
-                  fontSize: '12px',
-                  cursor: 'pointer'
-                }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = '#3a3a3a'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = '#2a2a2a'}
+            <div className="mt-3.75">
+              <h4 className="mb-2">Environment Tasks</h4>
+              <div className="flex flex-col gap-1">
+                <div className="p-2 px-3 bg-gray-800 rounded text-xs cursor-pointer hover:bg-gray-700 transition-colors"
                 onClick={() => {
                   const task = { id: 'env_setup', name: 'Environment Setup' };
                   openEnvironmentTaskPanel(task);
                 }}>
                   Environment Setup
                 </div>
-                <div style={{ 
-                  padding: '8px 12px', 
-                  backgroundColor: '#2a2a2a', 
-                  borderRadius: '4px',
-                  fontSize: '12px',
-                  cursor: 'pointer'
-                }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = '#3a3a3a'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = '#2a2a2a'}
+                <div className="p-2 px-3 bg-gray-800 rounded text-xs cursor-pointer hover:bg-gray-700 transition-colors"
                 onClick={() => {
                   const task = { id: 'deploy_service', name: 'Deploy Services' };
                   openEnvironmentTaskPanel(task);
                 }}>
                   Deploy Services
                 </div>
-                <div style={{ 
-                  padding: '8px 12px', 
-                  backgroundColor: '#2a2a2a', 
-                  borderRadius: '4px',
-                  fontSize: '12px',
-                  cursor: 'pointer'
-                }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = '#3a3a3a'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = '#2a2a2a'}
+                <div className="p-2 px-3 bg-gray-800 rounded text-xs cursor-pointer hover:bg-gray-700 transition-colors"
                 onClick={() => {
                   const task = { id: 'run_tests', name: 'Run Tests' };
                   openEnvironmentTaskPanel(task);
@@ -394,125 +286,58 @@ const LeftPanel = (props) => {
       {/* Second Resize Divider */}
       {selectedEnvironmentTask && (
         <div
-          style={{
-            width: '5px',
-            backgroundColor: '#444',
-            cursor: 'col-resize',
-            position: 'relative',
-            flexShrink: 0
-          }}
+          className="w-1.25 bg-gray-700 cursor-col-resize relative flex-shrink-0 hover:bg-gray-600 transition-colors"
           onMouseDown={() => startResize('middle')}
-          onMouseEnter={(e) => e.target.style.backgroundColor = '#666'}
-            onMouseLeave={(e) => e.target.style.backgroundColor = '#444'}
         >
-          <div style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '2px',
-            height: '20px',
-            backgroundColor: '#888',
-            borderRadius: '1px'
-          }} />
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-0.5 h-5 bg-gray-500 rounded-sm" />
         </div>
       )}
       
       {/* Third Panel - Environment Task Detail Panel */}
       {selectedEnvironmentTask && (
-        <div style={{ 
-          flex: 1, 
-          paddingLeft: '20px',
-          overflowY: 'auto'
-        }}>
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center',
-            marginBottom: '15px',
-            paddingBottom: '10px',
-            borderBottom: '1px solid #444'
-          }}>
-            <h3 style={{ margin: 0 }}>{selectedEnvironmentTask.name}</h3>
-            <div
+        <div className="flex-1 pl-5 overflow-y-auto">
+          <div className="flex justify-between items-center mb-3.75 pb-2.5 border-b border-gray-700">
+            <h3 className="m-0">{selectedEnvironmentTask.name}</h3>
+            <Button
               onClick={(e) => {
                 e.stopPropagation();
                 openTaskInNewPanel(selectedEnvironmentTask);
               }}
-              style={{
-                cursor: 'pointer',
-                padding: '6px 10px',
-                borderRadius: '4px',
-                backgroundColor: '#007acc',
-                color: 'white',
-                fontSize: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = '#005a9e'}
-              onMouseLeave={(e) => e.target.style.backgroundColor = '#007acc'}
+              className="cursor-pointer px-2.5 py-1.5 rounded text-xs flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white"
               title="Open in new panel"
             >
               <span>⊞</span>
               <span>Open in Panel</span>
-            </div>
+            </Button>
           </div>
           
-          <div style={{ fontSize: '14px', lineHeight: '1.5' }}>
-            <p><strong>Status:</strong> <span style={{ color: '#FF9800' }}>In Progress</span></p>
+          <div className="text-sm leading-relaxed">
+            <p><strong>Status:</strong> <span className="text-orange-500">In Progress</span></p>
             <p><strong>Priority:</strong> High</p>
             <p><strong>Environment:</strong> {selectedEnvironment.name}</p>
             <p><strong>Created:</strong> 2024-01-15</p>
             <p><strong>Due Date:</strong> 2024-01-20</p>
             
-            <div style={{ marginTop: '15px' }}>
-              <h4 style={{ marginBottom: '8px' }}>Description</h4>
-              <p style={{ color: '#ccc', fontSize: '13px' }}>
+            <div className="mt-3.75">
+              <h4 className="mb-2">Description</h4>
+              <p className="text-gray-400 text-xs">
                 This task involves setting up the development environment with all necessary dependencies and configurations. 
                 Ensure all services are properly configured and running.
               </p>
             </div>
             
-            <div style={{ marginTop: '15px' }}>
-              <h4 style={{ marginBottom: '8px' }}>Actions</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <div style={{ 
-                  padding: '8px 12px', 
-                  backgroundColor: '#4CAF50', 
-                  borderRadius: '4px',
-                  fontSize: '12px',
-                  cursor: 'pointer',
-                  textAlign: 'center'
-                }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = '#45a049'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = '#4CAF50'}>
+            <div className="mt-3.75">
+              <h4 className="mb-2">Actions</h4>
+              <div className="flex flex-col gap-2">
+                <Button className="p-2 px-3 bg-green-600 hover:bg-green-700 rounded text-xs cursor-pointer text-center">
                   Start Task
-                </div>
-                <div style={{ 
-                  padding: '8px 12px', 
-                  backgroundColor: '#2196F3', 
-                  borderRadius: '4px',
-                  fontSize: '12px',
-                  cursor: 'pointer',
-                  textAlign: 'center'
-                }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = '#1976D2'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = '#2196F3'}>
+                </Button>
+                <Button className="p-2 px-3 bg-blue-600 hover:bg-blue-700 rounded text-xs cursor-pointer text-center">
                   View Logs
-                </div>
-                <div style={{ 
-                  padding: '8px 12px', 
-                  backgroundColor: '#f44336', 
-                  borderRadius: '4px',
-                  fontSize: '12px',
-                  cursor: 'pointer',
-                  textAlign: 'center'
-                }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = '#d32f2f'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = '#f44336'}>
+                </Button>
+                <Button className="p-2 px-3 bg-red-600 hover:bg-red-700 rounded text-xs cursor-pointer text-center">
                   Cancel Task
-                </div>
+                </Button>
               </div>
             </div>
           </div>
@@ -521,129 +346,63 @@ const LeftPanel = (props) => {
       
       {/* Right Side - Task Detail Panel */}
       {selectedTask && !selectedEnvironmentTask && (
-        <div style={{ 
-          flex: 1, 
-          paddingLeft: '20px',
-          overflowY: 'auto'
-        }}>
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center',
-            marginBottom: '15px',
-            paddingBottom: '10px',
-            borderBottom: '1px solid #444'
-          }}>
-            <h3 style={{ margin: 0 }}>{selectedTask.name}</h3>
-            <div
+        <div className="flex-1 pl-5 overflow-y-auto">
+          <div className="flex justify-between items-center mb-3.75 pb-2.5 border-b border-gray-700">
+            <h3 className="m-0">{selectedTask.name}</h3>
+            <Button
               onClick={(e) => {
                 e.stopPropagation();
                 openTaskInNewPanel(selectedTask);
               }}
-              style={{
-                cursor: 'pointer',
-                padding: '6px 10px',
-                borderRadius: '4px',
-                backgroundColor: '#007acc',
-                color: 'white',
-                fontSize: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = '#005a9e'}
-              onMouseLeave={(e) => e.target.style.backgroundColor = '#007acc'}
+              className="cursor-pointer px-2.5 py-1.5 rounded text-xs flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white"
               title="Open in new panel"
             >
               <span>⊞</span>
               <span>Open in Panel</span>
-            </div>
+            </Button>
           </div>
           
-          <div style={{ fontSize: '14px', lineHeight: '1.5' }}>
-            <p><strong>Status:</strong> <span style={{ color: '#FF9800' }}>In Progress</span></p>
+          <div className="text-sm leading-relaxed">
+            <p><strong>Status:</strong> <span className="text-orange-500">In Progress</span></p>
             <p><strong>Priority:</strong> High</p>
             <p><strong>Assigned to:</strong> John Doe</p>
             <p><strong>Created:</strong> 2024-01-15</p>
             <p><strong>Due Date:</strong> 2024-01-20</p>
             
-            <div style={{ marginTop: '15px' }}>
-              <h4 style={{ marginBottom: '8px' }}>Description</h4>
-              <p style={{ color: '#ccc', fontSize: '13px' }}>
+            <div className="mt-3.75">
+              <h4 className="mb-2">Description</h4>
+              <p className="text-gray-400 text-xs">
                 This task involves setting up the development environment with all necessary dependencies and configurations. 
                 Ensure all services are properly configured and running.
               </p>
             </div>
             
-            <div style={{ marginTop: '15px' }}>
-              <h4 style={{ marginBottom: '8px' }}>Actions</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <div style={{ 
-                  padding: '8px 12px', 
-                  backgroundColor: '#4CAF50', 
-                  borderRadius: '4px',
-                  fontSize: '12px',
-                  cursor: 'pointer',
-                  textAlign: 'center'
-                }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = '#45a049'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = '#4CAF50'}>
+            <div className="mt-3.75">
+              <h4 className="mb-2">Actions</h4>
+              <div className="flex flex-col gap-2">
+                <Button className="p-2 px-3 bg-green-600 hover:bg-green-700 rounded text-xs cursor-pointer text-center">
                   Start Task
-                </div>
-                <div style={{ 
-                  padding: '8px 12px', 
-                  backgroundColor: '#2196F3', 
-                  borderRadius: '4px',
-                  fontSize: '12px',
-                  cursor: 'pointer',
-                  textAlign: 'center'
-                }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = '#1976D2'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = '#2196F3'}>
+                </Button>
+                <Button className="p-2 px-3 bg-blue-600 hover:bg-blue-700 rounded text-xs cursor-pointer text-center">
                   View Logs
-                </div>
-                <div style={{ 
-                  padding: '8px 12px', 
-                  backgroundColor: '#f44336', 
-                  borderRadius: '4px',
-                  fontSize: '12px',
-                  cursor: 'pointer',
-                  textAlign: 'center'
-                }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = '#d32f2f'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = '#f44336'}>
+                </Button>
+                <Button className="p-2 px-3 bg-red-600 hover:bg-red-700 rounded text-xs cursor-pointer text-center">
                   Cancel Task
-                </div>
+                </Button>
               </div>
             </div>
             
-            <div style={{ marginTop: '15px' }}>
-              <h4 style={{ marginBottom: '8px' }}>Related Environments</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <div style={{ 
-                  padding: '8px 12px', 
-                  backgroundColor: '#2a2a2a', 
-                  borderRadius: '4px',
-                  fontSize: '12px',
-                  cursor: 'pointer'
-                }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = '#3a3a3a'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = '#2a2a2a'}
+            <div className="mt-3.75">
+              <h4 className="mb-2">Related Environments</h4>
+              <div className="flex flex-col gap-1">
+                <div className="p-2 px-3 bg-gray-800 rounded text-xs cursor-pointer hover:bg-gray-700 transition-colors"
                 onClick={() => {
                   const env = { id: 'env1', name: 'Development Environment' };
                   openEnvironmentPanel(env);
                 }}>
                   Development Environment
                 </div>
-                <div style={{ 
-                  padding: '8px 12px', 
-                  backgroundColor: '#2a2a2a', 
-                  borderRadius: '4px',
-                  fontSize: '12px',
-                  cursor: 'pointer'
-                }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = '#3a3a3a'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = '#2a2a2a'}
+                <div className="p-2 px-3 bg-gray-800 rounded text-xs cursor-pointer hover:bg-gray-700 transition-colors"
                 onClick={() => {
                   const env = { id: 'env2', name: 'Staging Environment' };
                   openEnvironmentPanel(env);

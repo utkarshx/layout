@@ -1,5 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { DockviewApiContext } from './App';
+import { Card, CardHeader, CardTitle, CardContent } from './components/ui/card';
+import { Button } from './components/ui/button';
 
 const EnvironmentTasksPanel = (props) => {
   const { params } = props;
@@ -139,65 +141,44 @@ const EnvironmentTasksPanel = (props) => {
   }, [activeFloatingPanels, dockviewApi]);
 
   return (
-    <div style={{ padding: '20px', color: 'white', height: '100%', overflowY: 'auto' }}>
-      <h3 style={{ marginBottom: '20px', marginTop: 0 }}>
+    <div className="p-5 text-white h-full overflow-y-auto">
+      <h3 className="mb-5 mt-0 text-lg font-semibold">
         {environment ? `${environment.name} - Tasks` : 'Environment Tasks'}
       </h3>
       
-      <div style={{ marginBottom: '20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-          <h4 style={{ margin: 0 }}>Task List</h4>
-          <div style={{ fontSize: '12px', color: '#ccc' }}>
+      <div className="mb-5">
+        <div className="flex justify-between items-center mb-4">
+          <h4 className="m-0 text-base font-medium">Task List</h4>
+          <div className="text-xs text-gray-400">
             {environmentTasks.length} tasks
           </div>
         </div>
         
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div className="flex flex-col gap-2">
           {environmentTasks.map((task) => (
             <div
               key={task.id}
               onClick={() => openTaskPanel(task)}
-              style={{
-                padding: '12px 16px',
-                backgroundColor: '#2a2a2a',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                border: '1px solid #444',
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.backgroundColor = '#3a3a3a';
-                e.target.style.transform = 'translateY(-1px)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.backgroundColor = '#2a2a2a';
-                e.target.style.transform = 'translateY(0)';
-              }}
+              className="p-3 bg-gray-800 rounded-md cursor-pointer border border-gray-600 transition-all duration-200 hover:bg-gray-700 hover:transform hover:-translate-y-0.5"
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{task.name}</div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <span style={{ 
-                    fontSize: '10px', 
-                    padding: '2px 6px', 
-                    borderRadius: '10px', 
-                    backgroundColor: getPriorityColor(task.priority),
-                    color: 'white'
-                  }}>
+              <div className="flex justify-between items-center mb-2">
+                <div className="font-bold text-sm">{task.name}</div>
+                <div className="flex gap-2">
+                  <span className={`text-xs px-1.5 py-0.5 rounded-full text-white ${
+                    task.priority === 'High' ? 'bg-red-500' : 
+                    task.priority === 'Medium' ? 'bg-orange-500' : 'bg-green-500'
+                  }`}>
                     {task.priority}
                   </span>
-                  <span style={{ 
-                    fontSize: '10px', 
-                    padding: '2px 6px', 
-                    borderRadius: '10px', 
-                    backgroundColor: getStatusColor(task.status),
-                    color: 'white'
-                  }}>
+                  <span className={`text-xs px-1.5 py-0.5 rounded-full text-white ${
+                    task.status === 'Completed' ? 'bg-green-500' : 
+                    task.status === 'In Progress' ? 'bg-orange-500' : 'bg-gray-500'
+                  }`}>
                     {task.status}
                   </span>
                 </div>
               </div>
-              <div style={{ fontSize: '12px', color: '#ccc' }}>
+              <div className="text-xs text-gray-400">
                 Click to open floating task panel
               </div>
             </div>
@@ -205,43 +186,27 @@ const EnvironmentTasksPanel = (props) => {
         </div>
       </div>
       
-      <div style={{ marginTop: '30px' }}>
-        <h4 style={{ marginBottom: '10px' }}>Task Statistics</h4>
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(3, 1fr)', 
-          gap: '10px' 
-        }}>
-          <div style={{ 
-            backgroundColor: '#1a1a1a', 
-            padding: '15px', 
-            borderRadius: '6px', 
-            border: '1px solid #333',
-            textAlign: 'center'
-          }}>
-            <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#4CAF50' }}>1</div>
-            <div style={{ fontSize: '12px', color: '#ccc' }}>Completed</div>
-          </div>
-          <div style={{ 
-            backgroundColor: '#1a1a1a', 
-            padding: '15px', 
-            borderRadius: '6px', 
-            border: '1px solid #333',
-            textAlign: 'center'
-          }}>
-            <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#FF9800' }}>1</div>
-            <div style={{ fontSize: '12px', color: '#ccc' }}>In Progress</div>
-          </div>
-          <div style={{ 
-            backgroundColor: '#1a1a1a', 
-            padding: '15px', 
-            borderRadius: '6px', 
-            border: '1px solid #333',
-            textAlign: 'center'
-          }}>
-            <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#888' }}>3</div>
-            <div style={{ fontSize: '12px', color: '#ccc' }}>Pending</div>
-          </div>
+      <div className="mt-8">
+        <h4 className="mb-2.5 text-base font-medium">Task Statistics</h4>
+        <div className="grid grid-cols-3 gap-2.5">
+          <Card className="bg-gray-900 border-gray-700 text-center">
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold text-green-500">1</div>
+              <div className="text-xs text-gray-400">Completed</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gray-900 border-gray-700 text-center">
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold text-orange-500">1</div>
+              <div className="text-xs text-gray-400">In Progress</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gray-900 border-gray-700 text-center">
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold text-gray-500">3</div>
+              <div className="text-xs text-gray-400">Pending</div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

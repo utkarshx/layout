@@ -1,4 +1,6 @@
 import React from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from './components/ui/card';
+import { Button } from './components/ui/button';
 
 const EnvironmentDiffPanel = (props) => {
   const { params } = props;
@@ -70,8 +72,8 @@ const EnvironmentDiffPanel = (props) => {
   };
 
   return (
-    <div style={{ padding: '20px', color: 'white', height: '100%', overflowY: 'auto' }}>
-      <h3 style={{ marginBottom: '20px', marginTop: 0 }}>
+    <div className="p-5 text-white h-full overflow-y-auto">
+      <h3 className="mb-5 mt-0 text-lg font-semibold">
         {environment ? `${environment.name} - Configuration Diff` : 'Environment Diff'}
       </h3>
       
