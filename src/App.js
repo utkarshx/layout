@@ -5,6 +5,7 @@ import './App.css';
 import LeftPanel from './LeftPanel';
 import EnvironmentPanel from './EnvironmentPanel';
 import TaskPanel from './TaskPanel';
+import ChatPanel from './ChatPanel';
 
 export const DockviewApiContext = createContext(null);
 
@@ -16,6 +17,7 @@ const App = () => {
     LeftPanel: (props) => <LeftPanel {...props} dockviewApi={dockviewApi} />,
     EnvironmentPanel: (props) => <EnvironmentPanel {...props} dockviewApi={dockviewApi} />,
     TaskPanel: (props) => <TaskPanel {...props} />,
+    ChatPanel: (props) => <ChatPanel {...props} />,
   }), [dockviewApi]);
 
   const onReady = (event) => {
@@ -31,8 +33,17 @@ const App = () => {
         title: 'Controls',
       });
       console.log('Left panel added successfully');
+
+      // Add chat panel to the same tabbed group
+      api.addPanel({
+        id: 'chat_panel',
+        component: 'ChatPanel',
+        title: 'Chat',
+        position: { referencePanel: 'left_panel', direction: 'right' },
+      });
+      console.log('Chat panel added successfully');
     } catch (error) {
-      console.error('Error adding left panel:', error);
+      console.error('Error adding panels:', error);
     }
   };
 
