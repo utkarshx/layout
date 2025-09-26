@@ -19,6 +19,7 @@ const LeftPanel = (props) => {
 
   const [selectedEnvironment, setSelectedEnvironment] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
+  const [selectedEnvironmentTask, setSelectedEnvironmentTask] = useState(null);
 
   const environments = [
     { id: 'env1', name: 'Development Environment' },
@@ -76,6 +77,14 @@ const LeftPanel = (props) => {
     // Instead of opening a new panel, we'll set the selected task
     setSelectedTask(task);
     setSelectedEnvironment(null); // Clear environment selection when task is selected
+    setSelectedEnvironmentTask(null); // Clear environment task selection
+  };
+
+  const openEnvironmentTaskPanel = (task) => {
+    console.log('openEnvironmentTaskPanel called:', task);
+    // Set the environment task without clearing the environment
+    setSelectedEnvironmentTask(task);
+    setSelectedTask(null); // Clear main task selection
   };
 
   const openTaskInNewPanel = (task) => {
@@ -110,7 +119,7 @@ const LeftPanel = (props) => {
         flex: '0 0 300px', 
         overflowY: 'auto', 
         paddingRight: '10px',
-        borderRight: selectedEnvironment ? '1px solid #444' : 'none'
+        borderRight: (selectedEnvironment || selectedTask) ? '1px solid #444' : 'none'
       }}>
         {/* Environments Accordion */}
         <div style={{ marginBottom: '20px' }}>
@@ -212,9 +221,10 @@ const LeftPanel = (props) => {
       {/* Right Side - Environment Detail Panel */}
       {selectedEnvironment && (
         <div style={{ 
-          flex: 1, 
+          flex: selectedEnvironmentTask ? '0 0 400px' : 1, 
           paddingLeft: '20px',
-          overflowY: 'auto'
+          overflowY: 'auto',
+          borderRight: selectedEnvironmentTask ? '1px solid #444' : 'none'
         }}>
           <div style={{ 
             display: 'flex', 
@@ -271,7 +281,7 @@ const LeftPanel = (props) => {
                 onMouseLeave={(e) => e.target.style.backgroundColor = '#2a2a2a'}
                 onClick={() => {
                   const task = { id: 'env_setup', name: 'Environment Setup' };
-                  openTaskPanel(task);
+                  openEnvironmentTaskPanel(task);
                 }}>
                   Environment Setup
                 </div>
@@ -286,7 +296,7 @@ const LeftPanel = (props) => {
                 onMouseLeave={(e) => e.target.style.backgroundColor = '#2a2a2a'}
                 onClick={() => {
                   const task = { id: 'deploy_service', name: 'Deploy Services' };
-                  openTaskPanel(task);
+                  openEnvironmentTaskPanel(task);
                 }}>
                   Deploy Services
                 </div>
@@ -301,7 +311,7 @@ const LeftPanel = (props) => {
                 onMouseLeave={(e) => e.target.style.backgroundColor = '#2a2a2a'}
                 onClick={() => {
                   const task = { id: 'run_tests', name: 'Run Tests' };
-                  openTaskPanel(task);
+                  openEnvironmentTaskPanel(task);
                 }}>
                   Run Tests
                 </div>
@@ -311,8 +321,109 @@ const LeftPanel = (props) => {
         </div>
       )}
       
+      {/* Third Panel - Environment Task Detail Panel */}
+      {selectedEnvironmentTask && (
+        <div style={{ 
+          flex: 1, 
+          paddingLeft: '20px',
+          overflowY: 'auto'
+        }}>
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            marginBottom: '15px',
+            paddingBottom: '10px',
+            borderBottom: '1px solid #444'
+          }}>
+            <h3 style={{ margin: 0 }}>{selectedEnvironmentTask.name}</h3>
+            <div
+              onClick={(e) => {
+                e.stopPropagation();
+                openTaskInNewPanel(selectedEnvironmentTask);
+              }}
+              style={{
+                cursor: 'pointer',
+                padding: '6px 10px',
+                borderRadius: '4px',
+                backgroundColor: '#007acc',
+                color: 'white',
+                fontSize: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#005a9e'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = '#007acc'}
+              title="Open in new panel"
+            >
+              <span>⊞</span>
+              <span>Open in Panel</span>
+            </div>
+          </div>
+          
+          <div style={{ fontSize: '14px', lineHeight: '1.5' }}>
+            <p><strong>Status:</strong> <span style={{ color: '#FF9800' }}>In Progress</span></p>
+            <p><strong>Priority:</strong> High</p>
+            <p><strong>Environment:</strong> {selectedEnvironment.name}</p>
+            <p><strong>Created:</strong> 2024-01-15</p>
+            <p><strong>Due Date:</strong> 2024-01-20</p>
+            
+            <div style={{ marginTop: '15px' }}>
+              <h4 style={{ marginBottom: '8px' }}>Description</h4>
+              <p style={{ color: '#ccc', fontSize: '13px' }}>
+                This task involves setting up the development environment with all necessary dependencies and configurations. 
+                Ensure all services are properly configured and running.
+              </p>
+            </div>
+            
+            <div style={{ marginTop: '15px' }}>
+              <h4 style={{ marginBottom: '8px' }}>Actions</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ 
+                  padding: '8px 12px', 
+                  backgroundColor: '#4CAF50', 
+                  borderRadius: '4px',
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                  textAlign: 'center'
+                }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#45a049'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = '#4CAF50'}>
+                  Start Task
+                </div>
+                <div style={{ 
+                  padding: '8px 12px', 
+                  backgroundColor: '#2196F3', 
+                  borderRadius: '4px',
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                  textAlign: 'center'
+                }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#1976D2'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = '#2196F3'}>
+                  View Logs
+                </div>
+                <div style={{ 
+                  padding: '8px 12px', 
+                  backgroundColor: '#f44336', 
+                  borderRadius: '4px',
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                  textAlign: 'center'
+                }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#d32f2f'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = '#f44336'}>
+                  Cancel Task
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Right Side - Task Detail Panel */}
-      {selectedTask && (
+      {selectedTask && !selectedEnvironmentTask && (
         <div style={{ 
           flex: 1, 
           paddingLeft: '20px',
