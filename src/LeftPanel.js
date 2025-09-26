@@ -20,6 +20,13 @@ const LeftPanel = (props) => {
   const [selectedEnvironment, setSelectedEnvironment] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
   const [selectedEnvironmentTask, setSelectedEnvironmentTask] = useState(null);
+  
+  // Panel widths and resize state
+  const [panelWidths, setPanelWidths] = useState({
+    left: 300,
+    middle: 400,
+  });
+  const [isResizing, setIsResizing] = useState(null); // 'left' or 'middle'
 
   const environments = [
     { id: 'env1', name: 'Development Environment' },
@@ -87,6 +94,37 @@ const LeftPanel = (props) => {
     setSelectedTask(null); // Clear main task selection
   };
 
+  // Resize handlers
+  const startResize = (divider) => {
+    setIsResizing(divider);
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  };
+
+  const stopResize = () => {
+    setIsResizing(null);
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  };
+
+  const handleResize = (e) => {
+    if (!isResizing) return;
+    
+    const container = e.currentTarget.getBoundingClientRect();
+    const mouseX = e.clientX - container.left;
+    
+    if (isResizing === 'left') {
+      // Resize left panel
+      const newLeftWidth = Math.max(200, Math.min(mouseX, 500));
+      setPanelWidths(prev => ({ ...prev, left: newLeftWidth }));
+    } else if (isResizing === 'middle') {
+      // Resize middle panel
+      const leftPanelEnd = panelWidths.left + 5; // 5px for divider
+      const newMiddleWidth = Math.max(300, Math.min(mouseX - leftPanelEnd, 600));
+      setPanelWidths(prev => ({ ...prev, middle: newMiddleWidth }));
+    }
+  };
+
   const openTaskInNewPanel = (task) => {
     console.log('openTaskInNewPanel called:', task);
     console.log('dockviewApi available:', !!dockviewApi);
@@ -113,10 +151,15 @@ const LeftPanel = (props) => {
   };
 
   return (
-    <div style={{ padding: '10px', color: 'white', height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'row' }}>
+    <div 
+      style={{ padding: '10px', color: 'white', height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'row' }}
+      onMouseMove={handleResize}
+      onMouseUp={stopResize}
+      onMouseLeave={stopResize}
+    >
       {/* Left Side - Environments and Tasks */}
       <div style={{ 
-        flex: '0 0 300px', 
+        flex: `0 0 ${panelWidths.left}px`, 
         overflowY: 'auto', 
         paddingRight: '10px',
         borderRight: (selectedEnvironment || selectedTask) ? '1px solid #444' : 'none'
@@ -218,10 +261,37 @@ const LeftPanel = (props) => {
         </div>
       </div>
       
+      {/* First Resize Divider - Between List and Environment */}
+      {(selectedEnvironment || selectedTask) && (
+        <div
+          style={{
+            width: '5px',
+            backgroundColor: '#444',
+            cursor: 'col-resize',
+            position: 'relative',
+            flexShrink: 0
+          }}
+          onMouseDown={() => startResize('left')}
+          onMouseEnter={(e) => e.target.style.backgroundColor = '#666'}
+          onMouseLeave={(e) => e.target.style.backgroundColor = '#444'}
+        >
+          <div style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '2px',
+            height: '20px',
+            backgroundColor: '#888',
+            borderRadius: '1px'
+          }} />
+        </div>
+      )}
+      
       {/* Right Side - Environment Detail Panel */}
       {selectedEnvironment && (
         <div style={{ 
-          flex: selectedEnvironmentTask ? '0 0 400px' : 1, 
+          flex: selectedEnvironmentTask ? `0 0 ${panelWidths.middle}px` : 1, 
           paddingLeft: '20px',
           overflowY: 'auto',
           borderRight: selectedEnvironmentTask ? '1px solid #444' : 'none'
@@ -318,6 +388,33 @@ const LeftPanel = (props) => {
               </div>
             </div>
           </div>
+        </div>
+      )}
+      
+      {/* Second Resize Divider */}
+      {selectedEnvironmentTask && (
+        <div
+          style={{
+            width: '5px',
+            backgroundColor: '#444',
+            cursor: 'col-resize',
+            position: 'relative',
+            flexShrink: 0
+          }}
+          onMouseDown={() => startResize('middle')}
+          onMouseEnter={(e) => e.target.style.backgroundColor = '#666'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = '#444'}
+        >
+          <div style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '2px',
+            height: '20px',
+            backgroundColor: '#888',
+            borderRadius: '1px'
+          }} />
         </div>
       )}
       
