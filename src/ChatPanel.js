@@ -1,12 +1,22 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 const ChatPanel = (props) => {
-  const [messages, setMessages] = useState([
-    { id: 1, text: 'Hello! Welcome to the chat panel.', sender: 'system', timestamp: new Date() },
-    { id: 2, text: 'How can I help you today?', sender: 'system', timestamp: new Date() },
+  // Multiple chats state
+  const [chats, setChats] = useState([
+    { 
+      id: 'chat1', 
+      title: 'Chat 1', 
+      messages: [
+        { id: 1, text: 'Hello! Welcome to the chat panel.', sender: 'system', timestamp: new Date() },
+        { id: 2, text: 'How can I help you today?', sender: 'system', timestamp: new Date() },
+      ] 
+    }
   ]);
+  const [activeChatId, setActiveChatId] = useState('chat1');
   const [inputMessage, setInputMessage] = useState('');
   const messagesEndRef = useRef(null);
+
+  const activeChat = chats.find(chat => chat.id === activeChatId);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -14,31 +24,68 @@ const ChatPanel = (props) => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [activeChat?.messages]);
 
   const handleSendMessage = () => {
-    if (inputMessage.trim() === '') return;
+    if (inputMessage.trim() === '' || !activeChat) return;
 
     const newMessage = {
-      id: messages.length + 1,
+      id: activeChat.messages.length + 1,
       text: inputMessage,
       sender: 'user',
       timestamp: new Date(),
     };
 
-    setMessages([...messages, newMessage]);
+    // Update the active chat with new message
+    setChats(prevChats => 
+      prevChats.map(chat => 
+        chat.id === activeChatId 
+          ? { ...chat, messages: [...chat.messages, newMessage] }
+          : chat
+      )
+    );
     setInputMessage('');
 
     // Simulate a response after a short delay
     setTimeout(() => {
       const responseMessage = {
-        id: messages.length + 2,
+        id: activeChat.messages.length + 2,
         text: 'Thanks for your message! This is a simulated response.',
         sender: 'system',
         timestamp: new Date(),
       };
-      setMessages(prev => [...prev, responseMessage]);
+      
+      setChats(prevChats => 
+        prevChats.map(chat => 
+          chat.id === activeChatId 
+            ? { ...chat, messages: [...chat.messages, responseMessage] }
+            : chat
+        )
+      );
     }, 1000);
+  };
+
+  const addNewChat = () => {
+    const newChatId = `chat${chats.length + 1}`;
+    const newChat = {
+      id: newChatId,
+      title: `Chat ${chats.length + 1}`,
+      messages: [
+        { 
+          id: 1, 
+          text: 'New chat created. How can I help you today?', 
+          sender: 'system', 
+          timestamp: new Date() 
+        }
+      ]
+    };
+    
+    setChats([...chats, newChat]);
+    setActiveChatId(newChatId);
+  };
+
+  const switchChat = (chatId) => {
+    setActiveChatId(chatId);
   };
 
   const handleKeyDown = (e) => {
@@ -62,6 +109,72 @@ const ChatPanel = (props) => {
       flexDirection: 'column' 
     }}>
       
+      {/* Chat Tabs */}
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        marginBottom: '15px',
+        borderBottom: '1px solid #444',
+        paddingBottom: '10px'
+      }}>
+        <div style={{ display: 'flex', gap: '2px', flex: 1 }}>
+          {chats.map((chat) => (
+            <div
+              key={chat.id}
+              onClick={() => switchChat(chat.id)}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: chat.id === activeChatId ? '#007acc' : '#2a2a2a',
+                color: 'white',
+                border: '1px solid #444',
+                borderRadius: '4px 4px 0 0',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: chat.id === activeChatId ? 'bold' : 'normal',
+                transition: 'background-color 0.2s',
+              }}
+              onMouseEnter={(e) => {
+                if (chat.id !== activeChatId) {
+                  e.target.style.backgroundColor = '#3a3a3a';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (chat.id !== activeChatId) {
+                  e.target.style.backgroundColor = '#2a2a2a';
+                }
+              }}
+            >
+              {chat.title}
+            </div>
+          ))}
+        </div>
+        
+        {/* Add Chat Button */}
+        <div
+          onClick={addNewChat}
+          style={{
+            padding: '8px 12px',
+            backgroundColor: '#4CAF50',
+            color: 'white',
+            border: '1px solid #444',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: 'bold',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            transition: 'background-color 0.2s',
+          }}
+          onMouseEnter={(e) => e.target.style.backgroundColor = '#45a049'}
+          onMouseLeave={(e) => e.target.style.backgroundColor = '#4CAF50'}
+          title="Add new chat"
+        >
+          <span>+</span>
+          <span>Add Chat</span>
+        </div>
+      </div>
+      
       {/* Chat Messages Container */}
       <div style={{ 
         flex: 1, 
@@ -72,7 +185,7 @@ const ChatPanel = (props) => {
         marginBottom: '15px',
         border: '1px solid #333'
       }}>
-        {messages.map((message) => (
+        {activeChat?.messages.map((message) => (
           <div
             key={message.id}
             style={{
