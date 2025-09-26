@@ -1,20 +1,24 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Button } from './components/ui/button';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from './components/ui/tabs';
-import { Input } from './components/ui/input';
-import { Popover, PopoverTrigger, PopoverContent } from './components/ui/popover';
+ import React, { useState, useRef, useEffect, useContext } from 'react';
+ import { DockviewApiContext } from './App';
+ import { Button } from './components/ui/button';
+ import { Tabs, TabsList, TabsTrigger, TabsContent } from './components/ui/tabs';
+ import { Input } from './components/ui/input';
+ import { Popover, PopoverTrigger, PopoverContent } from './components/ui/popover';
+ import TaskPanel from './TaskPanel';
 
 const ChatPanel = (props) => {
+  const dockviewApi = useContext(DockviewApiContext);
+
   // Multiple chats state
   const [chats, setChats] = useState([
-    { 
-      id: 'chat1', 
+    {
+      id: 'chat1',
       title: 'Chat 1',
       type: 'chat',
       messages: [
         { id: 1, text: 'Hello! Welcome to the chat panel.', sender: 'system', timestamp: new Date() },
         { id: 2, text: 'How can I help you today?', sender: 'system', timestamp: new Date() },
-      ] 
+      ]
     }
   ]);
   const [activeChatId, setActiveChatId] = useState('chat1');
@@ -181,45 +185,23 @@ const ChatPanel = (props) => {
                 View Task Details
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-80 bg-gray-800 border-gray-700 text-white">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-blue-300">Task Details</h3>
-                  <span className="text-xs px-2 py-1 bg-blue-600 rounded-full">ACTIVE</span>
-                </div>
-                
-                <div className="space-y-2">
-                  <div>
-                    <label className="text-xs text-gray-400 uppercase tracking-wide">Task Name</label>
-                    <p className="text-sm font-medium">{activeChat.title}</p>
-                  </div>
-                  
-                  <div>
-                    <label className="text-xs text-gray-400 uppercase tracking-wide">Created</label>
-                    <p className="text-sm">{activeChat.messages[0]?.timestamp.toLocaleDateString()}</p>
-                  </div>
-                  
-                  <div>
-                    <label className="text-xs text-gray-400 uppercase tracking-wide">Messages</label>
-                    <p className="text-sm">{activeChat.messages.length} messages</p>
-                  </div>
-                  
-                  <div>
-                    <label className="text-xs text-gray-400 uppercase tracking-wide">Status</label>
-                    <p className="text-sm text-green-400">In Progress</p>
-                  </div>
-                </div>
-                
-                <div className="border-t border-gray-700 pt-3">
-                  <div className="flex gap-2">
-                    <Button className="flex-1 text-xs py-1 bg-green-600 hover:bg-green-700">
-                      Mark Complete
-                    </Button>
-                    <Button className="flex-1 text-xs py-1 bg-gray-600 hover:bg-gray-700">
-                      Edit Task
-                    </Button>
-                  </div>
-                </div>
+            <PopoverContent
+              className="w-[800px] h-screen p-0 bg-gray-900 border-gray-700"
+              side="left"
+              align="center"
+            >
+              <div className="h-full">
+                <DockviewApiContext.Provider value={dockviewApi}>
+                  <TaskPanel
+                    params={{ task: { id: activeChat.id, name: activeChat.title } }}
+                    api={{
+                      id: 'popover-task-panel',
+                      title: `${activeChat.title} - Task`,
+                      group: { location: { type: 'popover' } },
+                      onPanelOpen: () => setTaskPopoverOpen(false)
+                    }}
+                  />
+                </DockviewApiContext.Provider>
               </div>
             </PopoverContent>
           </Popover>
