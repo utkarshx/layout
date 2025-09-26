@@ -47,100 +47,63 @@ const EnvironmentInfoPanel = (props) => {
   };
 
   return (
-    <div style={{ padding: '20px', color: 'white', height: '100%', overflowY: 'auto' }}>
-      <h3 style={{ marginBottom: '20px', marginTop: 0 }}>
+    <div className="p-4 text-white h-full overflow-y-auto">
+      <h3 className="mb-4 text-lg font-semibold">
         Environment Information
       </h3>
       
-      {/* Environment Overview */}
-      <div style={{ marginBottom: '30px' }}>
-        <h4 style={{ marginBottom: '15px', color: '#007acc' }}>Overview</h4>
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(2, 1fr)', 
-          gap: '15px' 
-        }}>
-          <div style={{ 
-            backgroundColor: '#1a1a1a', 
-            padding: '15px', 
-            borderRadius: '6px', 
-            border: '1px solid #333'
-          }}>
-            <div style={{ fontSize: '12px', color: '#888', marginBottom: '4px' }}>Name</div>
-            <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{environmentData.name}</div>
+      <div className="mb-6">
+        <h4 className="mb-3 text-sm font-medium text-blue-400">Overview</h4>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="p-3">
+            <div className="text-xs text-gray-400 mb-1">Name</div>
+            <div className="text-base font-medium">{environmentData.name}</div>
           </div>
-          <div style={{ 
-            backgroundColor: '#1a1a1a', 
-            padding: '15px', 
-            borderRadius: '6px', 
-            border: '1px solid #333'
-          }}>
-            <div style={{ fontSize: '12px', color: '#888', marginBottom: '4px' }}>Status</div>
-            <div style={{ fontSize: '16px', fontWeight: 'bold', color: getStatusColor(environmentData.status) }}>
+          <div className="p-3">
+            <div className="text-xs text-gray-400 mb-1">Status</div>
+            <div className="text-base font-medium" style={{ color: getStatusColor(environmentData.status) }}>
               ● {environmentData.status}
             </div>
           </div>
-          <div style={{ 
-            backgroundColor: '#1a1a1a', 
-            padding: '15px', 
-            borderRadius: '6px', 
-            border: '1px solid #333'
-          }}>
-            <div style={{ fontSize: '12px', color: '#888', marginBottom: '4px' }}>URL</div>
-            <div style={{ fontSize: '14px', color: '#007acc', wordBreak: 'break-all' }}>
+          <div className="p-3">
+            <div className="text-xs text-gray-400 mb-1">URL</div>
+            <div className="text-sm text-blue-400 break-all">
               {environmentData.url}
             </div>
           </div>
-          <div style={{ 
-            backgroundColor: '#1a1a1a', 
-            padding: '15px', 
-            borderRadius: '6px', 
-            border: '1px solid #333'
-          }}>
-            <div style={{ fontSize: '12px', color: '#888', marginBottom: '4px' }}>Version</div>
-            <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{environmentData.version}</div>
+          <div className="p-3">
+            <div className="text-xs text-gray-400 mb-1">Version</div>
+            <div className="text-base font-medium">{environmentData.version}</div>
           </div>
         </div>
       </div>
       
-      {/* Services */}
-      <div style={{ marginBottom: '30px' }}>
-        <h4 style={{ marginBottom: '15px', color: '#007acc' }}>Services</h4>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      <div className="mb-6">
+        <h4 className="mb-3 text-sm font-medium text-blue-400">Services</h4>
+        <div className="space-y-2">
           {services.map((service, index) => (
-            <div key={index} style={{ 
-              backgroundColor: '#1a1a1a', 
-              padding: '15px', 
-              borderRadius: '6px', 
-              border: '1px solid #333'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{service.name}</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{ 
-                    fontSize: '10px', 
-                    padding: '2px 8px', 
-                    borderRadius: '10px', 
-                    backgroundColor: getStatusColor(service.status),
-                    color: 'white'
-                  }}>
+            <div key={index} className="p-3">
+              <div className="flex justify-between items-center mb-2">
+                <div className="font-medium text-sm">{service.name}</div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs px-2 py-1 rounded text-white" style={{ backgroundColor: getStatusColor(service.status) }}>
                     {service.status}
                   </span>
-                  <span style={{ fontSize: '12px', color: '#ccc' }}>
+                  <span className="text-xs text-gray-400">
                     {service.version}
                   </span>
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: '20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <span style={{ fontSize: '12px', color: '#888' }}>CPU:</span>
-                  <span style={{ fontSize: '12px', color: getResourceColor(service.cpu), fontWeight: 'bold' }}>
+              <div className="flex gap-4">
+                <div className="flex items-center gap-1">
+                  <span className="text-xs text-gray-400">CPU:</span>
+                  <span className="text-xs font-medium" style={{ color: getResourceColor(service.cpu) }}>
                     {service.cpu}
                   </span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <span style={{ fontSize: '12px', color: '#888' }}>Memory:</span>
-                  <span style={{ fontSize: '12px', color: getResourceColor(service.memory), fontWeight: 'bold' }}>
+                <div className="flex items-center gap-1">
+                  <span className="text-xs text-gray-400">Memory:</span>
+                  <span className="text-xs font-medium" style={{ color: getResourceColor(service.memory) }}>
                     {service.memory}
                   </span>
                 </div>
@@ -150,78 +113,35 @@ const EnvironmentInfoPanel = (props) => {
         </div>
       </div>
       
-      {/* Additional Info */}
-      <div style={{ marginBottom: '30px' }}>
-        <h4 style={{ marginBottom: '15px', color: '#007acc' }}>Additional Information</h4>
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(3, 1fr)', 
-          gap: '15px' 
-        }}>
-          <div style={{ 
-            backgroundColor: '#1a1a1a', 
-            padding: '15px', 
-            borderRadius: '6px', 
-            border: '1px solid #333',
-            textAlign: 'center'
-          }}>
-            <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#4CAF50' }}>
+      <div className="mb-6">
+        <h4 className="mb-3 text-sm font-medium text-blue-400">Additional Information</h4>
+        <div className="flex gap-4">
+          <div className="text-center">
+            <div className="text-lg font-bold text-green-500">
               {environmentData.uptime}
             </div>
-            <div style={{ fontSize: '12px', color: '#ccc' }}>Uptime</div>
+            <div className="text-xs text-gray-400">Uptime</div>
           </div>
-          <div style={{ 
-            backgroundColor: '#1a1a1a', 
-            padding: '15px', 
-            borderRadius: '6px', 
-            border: '1px solid #333',
-            textAlign: 'center'
-          }}>
-            <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#FF9800' }}>
+          <div className="text-center">
+            <div className="text-lg font-bold text-orange-500">
               {environmentData.cost}
             </div>
-            <div style={{ fontSize: '12px', color: '#ccc' }}>Monthly Cost</div>
+            <div className="text-xs text-gray-400">Monthly Cost</div>
           </div>
-          <div style={{ 
-            backgroundColor: '#1a1a1a', 
-            padding: '15px', 
-            borderRadius: '6px', 
-            border: '1px solid #333',
-            textAlign: 'center'
-          }}>
-            <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#007acc' }}>
+          <div className="text-center">
+            <div className="text-lg font-bold text-blue-500">
               {services.length}
             </div>
-            <div style={{ fontSize: '12px', color: '#ccc' }}>Services</div>
+            <div className="text-xs text-gray-400">Services</div>
           </div>
         </div>
       </div>
       
-      {/* Actions */}
-      <div style={{ textAlign: 'center' }}>
-        <button style={{
-          padding: '10px 20px',
-          backgroundColor: '#007acc',
-          color: 'white',
-          border: 'none',
-          borderRadius: '6px',
-          cursor: 'pointer',
-          fontSize: '14px',
-          fontWeight: 'bold',
-          marginRight: '10px'
-        }}>
+      <div className="text-center">
+        <button className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded mr-2">
           Edit Environment
         </button>
-        <button style={{
-          padding: '10px 20px',
-          backgroundColor: '#4CAF50',
-          color: 'white',
-          border: 'none',
-          borderRadius: '6px',
-          cursor: 'pointer',
-          fontSize: '14px',
-          fontWeight: 'bold'
-        }}>
+        <button className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded">
           View Logs
         </button>
       </div>

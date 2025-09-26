@@ -72,100 +72,51 @@ const EnvironmentDiffPanel = (props) => {
   };
 
   return (
-    <div className="p-5 text-white h-full overflow-y-auto">
-      <h3 className="mb-5 mt-0 text-lg font-semibold">
+    <div className="p-4 text-white h-full overflow-y-auto">
+      <h3 className="mb-4 text-lg font-semibold">
         {environment ? `${environment.name} - Configuration Diff` : 'Environment Diff'}
       </h3>
       
-      <div style={{ marginBottom: '20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-          <h4 style={{ margin: 0 }}>Configuration Changes</h4>
-          <div style={{ fontSize: '12px', color: '#ccc' }}>
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-3">
+          <h4 className="text-sm font-medium">Configuration Changes</h4>
+          <div className="text-xs text-gray-400">
             {diffData.length} changes
           </div>
         </div>
         
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div className="space-y-3">
           {diffData.map((diff, index) => (
-            <div key={index} style={{ 
-              backgroundColor: '#1a1a1a', 
-              borderRadius: '6px', 
-              border: `1px solid ${getDiffColor(diff.type)}`,
-              overflow: 'hidden'
-            }}>
-              <div style={{ 
-                padding: '12px 16px', 
-                backgroundColor: '#2a2a2a',
-                borderBottom: '1px solid #333',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ 
-                    color: getDiffColor(diff.type), 
-                    fontWeight: 'bold',
-                    fontSize: '16px'
-                  }}>
+            <div key={index} className="border-l-4" style={{ borderLeftColor: getDiffColor(diff.type) }}>
+              <div className="bg-gray-800 px-3 py-2 flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <span style={{ color: getDiffColor(diff.type) }}>
                     {getDiffIcon(diff.type)}
                   </span>
-                  <span style={{ fontWeight: 'bold', fontSize: '14px' }}>
+                  <span className="font-medium text-sm">
                     {diff.file}
                   </span>
                 </div>
-                <span style={{ 
-                  fontSize: '10px', 
-                  padding: '2px 8px', 
-                  borderRadius: '10px', 
-                  backgroundColor: getDiffColor(diff.type),
-                  color: 'white',
-                  textTransform: 'uppercase'
-                }}>
+                <span className="text-xs px-2 py-1 rounded text-white uppercase" style={{ backgroundColor: getDiffColor(diff.type) }}>
                   {diff.type}
                 </span>
               </div>
               
-              <div style={{ padding: '16px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div className="p-3">
+                <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <div style={{ 
-                      fontSize: '12px', 
-                      color: '#888', 
-                      marginBottom: '8px',
-                      fontWeight: 'bold'
-                    }}>
-                      Old Version
-                    </div>
-                    <div style={{ 
-                      backgroundColor: '#0a0a0a', 
-                      padding: '12px', 
-                      borderRadius: '4px',
-                      border: '1px solid #333',
-                      minHeight: '60px'
-                    }}>
+                    <div className="text-xs text-gray-400 mb-1 font-medium">Old Version</div>
+                    <div className="bg-gray-900 p-2 text-xs font-mono">
                       {diff.oldContent ? formatDiffContent(diff.oldContent) : 
-                       <div style={{ color: '#666', fontStyle: 'italic' }}>File removed</div>}
+                       <div className="text-gray-500 italic">File removed</div>}
                     </div>
                   </div>
                   
                   <div>
-                    <div style={{ 
-                      fontSize: '12px', 
-                      color: '#888', 
-                      marginBottom: '8px',
-                      fontWeight: 'bold'
-                    }}>
-                      New Version
-                    </div>
-                    <div style={{ 
-                      backgroundColor: '#0a0a0a', 
-                      padding: '12px', 
-                      borderRadius: '4px',
-                      border: '1px solid #333',
-                      minHeight: '60px'
-                    }}>
+                    <div className="text-xs text-gray-400 mb-1 font-medium">New Version</div>
+                    <div className="bg-gray-900 p-2 text-xs font-mono">
                       {diff.newContent ? formatDiffContent(diff.newContent) : 
-                       <div style={{ color: '#666', fontStyle: 'italic' }}>File added</div>}
+                       <div className="text-gray-500 italic">File added</div>}
                     </div>
                   </div>
                 </div>
@@ -175,67 +126,30 @@ const EnvironmentDiffPanel = (props) => {
         </div>
       </div>
       
-      <div style={{ marginTop: '30px' }}>
-        <h4 style={{ marginBottom: '15px' }}>Diff Summary</h4>
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(4, 1fr)', 
-          gap: '10px' 
-        }}>
-          <div style={{ 
-            backgroundColor: '#1a1a1a', 
-            padding: '15px', 
-            borderRadius: '6px', 
-            border: '1px solid #333',
-            textAlign: 'center'
-          }}>
-            <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#FF9800' }}>2</div>
-            <div style={{ fontSize: '12px', color: '#ccc' }}>Modified</div>
+      <div className="mt-6">
+        <h4 className="mb-3 text-sm font-medium">Diff Summary</h4>
+        <div className="flex gap-4">
+          <div className="text-center">
+            <div className="text-lg font-bold text-orange-500">2</div>
+            <div className="text-xs text-gray-400">Modified</div>
           </div>
-          <div style={{ 
-            backgroundColor: '#1a1a1a', 
-            padding: '15px', 
-            borderRadius: '6px', 
-            border: '1px solid #333',
-            textAlign: 'center'
-          }}>
-            <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#4CAF50' }}>1</div>
-            <div style={{ fontSize: '12px', color: '#ccc' }}>Added</div>
+          <div className="text-center">
+            <div className="text-lg font-bold text-green-500">1</div>
+            <div className="text-xs text-gray-400">Added</div>
           </div>
-          <div style={{ 
-            backgroundColor: '#1a1a1a', 
-            padding: '15px', 
-            borderRadius: '6px', 
-            border: '1px solid #333',
-            textAlign: 'center'
-          }}>
-            <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#f44336' }}>1</div>
-            <div style={{ fontSize: '12px', color: '#ccc' }}>Removed</div>
+          <div className="text-center">
+            <div className="text-lg font-bold text-red-500">1</div>
+            <div className="text-xs text-gray-400">Removed</div>
           </div>
-          <div style={{ 
-            backgroundColor: '#1a1a1a', 
-            padding: '15px', 
-            borderRadius: '6px', 
-            border: '1px solid #333',
-            textAlign: 'center'
-          }}>
-            <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#007acc' }}>4</div>
-            <div style={{ fontSize: '12px', color: '#ccc' }}>Total</div>
+          <div className="text-center">
+            <div className="text-lg font-bold text-blue-500">4</div>
+            <div className="text-xs text-gray-400">Total</div>
           </div>
         </div>
       </div>
       
-      <div style={{ marginTop: '20px', textAlign: 'center' }}>
-        <button style={{
-          padding: '10px 20px',
-          backgroundColor: '#007acc',
-          color: 'white',
-          border: 'none',
-          borderRadius: '6px',
-          cursor: 'pointer',
-          fontSize: '14px',
-          fontWeight: 'bold'
-        }}>
+      <div className="mt-6 text-center">
+        <button className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded">
           Apply Changes
         </button>
       </div>

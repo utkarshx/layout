@@ -53,20 +53,20 @@ const EnvironmentTasksPanel = (props) => {
 
 
   return (
-    <div className="p-5 text-white h-full overflow-y-auto">
-      <h3 className="mb-5 mt-0 text-lg font-semibold">
+    <div className="p-4 text-white h-full overflow-y-auto bg-gray-900">
+      <h3 className="mb-4 text-lg font-semibold">
         {environment ? `${environment.name} - Tasks` : 'Environment Tasks'}
       </h3>
       
-      <div className="mb-5">
-        <div className="flex justify-between items-center mb-4">
-          <h4 className="m-0 text-base font-medium">Task List</h4>
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-3">
+          <h4 className="text-sm font-medium">Task List</h4>
           <div className="text-xs text-gray-400">
             {environmentTasks.length} tasks
           </div>
         </div>
         
-        <div className="flex flex-col gap-2">
+        <div className="space-y-2">
           {environmentTasks.map((task) => (
             <div
               key={task.id}
@@ -76,58 +76,49 @@ const EnvironmentTasksPanel = (props) => {
                   onTaskSelect(task);
                 }
               }}
-              className={`p-3 rounded-md cursor-pointer border transition-all duration-200 hover:transform hover:-translate-y-0.5 ${
+              className={`p-3 cursor-pointer transition-colors ${
                 selectedTask?.id === task.id 
-                  ? 'bg-blue-800 border-blue-500' 
-                  : 'bg-gray-800 border-gray-600 hover:bg-gray-700'
+                  ? 'bg-blue-800' 
+                  : 'bg-gray-800 hover:bg-gray-700'
               }`}
             >
-              <div className="flex justify-between items-center mb-2">
-                <div className="font-bold text-sm">{task.name}</div>
+              <div className="flex justify-between items-center">
+                <div className="font-medium text-sm">{task.name}</div>
                 <div className="flex gap-2">
-                  <span className={`text-xs px-1.5 py-0.5 rounded-full text-white ${
-                    task.priority === 'High' ? 'bg-red-500' : 
-                    task.priority === 'Medium' ? 'bg-orange-500' : 'bg-green-500'
+                  <span className={`text-xs px-2 py-1 rounded text-white ${
+                    task.priority === 'High' ? 'bg-red-600' : 
+                    task.priority === 'Medium' ? 'bg-orange-600' : 'bg-green-600'
                   }`}>
                     {task.priority}
                   </span>
-                  <span className={`text-xs px-1.5 py-0.5 rounded-full text-white ${
-                    task.status === 'Completed' ? 'bg-green-500' : 
-                    task.status === 'In Progress' ? 'bg-orange-500' : 'bg-gray-500'
+                  <span className={`text-xs px-2 py-1 rounded text-white ${
+                    task.status === 'Completed' ? 'bg-green-600' : 
+                    task.status === 'In Progress' ? 'bg-orange-600' : 'bg-gray-600'
                   }`}>
                     {task.status}
                   </span>
                 </div>
-              </div>
-              <div className="text-xs text-gray-400">
-                Click to view task details on the right
               </div>
             </div>
           ))}
         </div>
       </div>
       
-      <div className="mt-8">
-        <h4 className="mb-2.5 text-base font-medium">Task Statistics</h4>
-        <div className="grid grid-cols-3 gap-2.5">
-          <Card className="bg-gray-900 border-gray-700 text-center">
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-green-500">1</div>
-              <div className="text-xs text-gray-400">Completed</div>
-            </CardContent>
-          </Card>
-          <Card className="bg-gray-900 border-gray-700 text-center">
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-orange-500">1</div>
-              <div className="text-xs text-gray-400">In Progress</div>
-            </CardContent>
-          </Card>
-          <Card className="bg-gray-900 border-gray-700 text-center">
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-gray-500">3</div>
-              <div className="text-xs text-gray-400">Pending</div>
-            </CardContent>
-          </Card>
+      <div className="mt-6">
+        <h4 className="mb-3 text-sm font-medium">Task Statistics</h4>
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-gray-800 p-3 rounded text-center">
+            <div className="text-xl font-bold text-green-500">1</div>
+            <div className="text-xs text-gray-400">Completed</div>
+          </div>
+          <div className="bg-gray-800 p-3 rounded text-center">
+            <div className="text-xl font-bold text-orange-500">1</div>
+            <div className="text-xs text-gray-400">In Progress</div>
+          </div>
+          <div className="bg-gray-800 p-3 rounded text-center">
+            <div className="text-xl font-bold text-gray-500">3</div>
+            <div className="text-xs text-gray-400">Pending</div>
+          </div>
         </div>
       </div>
     </div>
