@@ -1,11 +1,19 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
+import { DockviewApiContext } from './App';
 
 const TaskPanel = (props) => {
-  const { params } = props;
+  const { params, api } = props;
   const { environment, task } = params || {};
+  const dockviewApi = useContext(DockviewApiContext);
   
   // Tab state
   const [activeTab, setActiveTab] = useState('detail');
+  
+  // Floating environment panel state
+  const [activeEnvironmentPanel, setActiveEnvironmentPanel] = useState(null);
+  
+  // Check if this is a floating panel or regular panel
+  const isFloatingPanel = api?.group?.location?.type === 'floating';
   
   // Chat state for task-specific chat
   const [messages, setMessages] = useState([
@@ -22,6 +30,42 @@ const TaskPanel = (props) => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Add click outside to close functionality for environment panel
+  useEffect(() => {
+    if (!activeEnvironmentPanel) return;
+    
+    const handleClickOutside = (event) => {
+      // Check if click is outside any floating panel
+      const floatingPanels = document.querySelectorAll('.dockview-floating-group');
+      let clickedInsidePanel = false;
+      
+      floatingPanels.forEach(panel => {
+        if (panel.contains(event.target)) {
+          clickedInsidePanel = true;
+        }
+      });
+      
+      // If clicked outside all floating panels, close environment panel
+      if (!clickedInsidePanel) {
+        const panel = dockviewApi?.getPanel(activeEnvironmentPanel);
+        if (panel) {
+          panel.api.close();
+        }
+        setActiveEnvironmentPanel(null);
+      }
+    };
+    
+    // Add event listener with delay to avoid immediate closing
+    const timer = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+    }, 100);
+    
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [activeEnvironmentPanel, dockviewApi]);
 
   const handleSendMessage = () => {
     if (inputMessage.trim() === '') return;
@@ -59,9 +103,92 @@ const TaskPanel = (props) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  const openEnvironmentPanel = () => {
+    if (!environment || !dockviewApi) return;
+    
+    const panelId = `env_panel_${environment.name?.replace(/\s+/g, '_')}_${Date.now()}`;
+    
+    try {
+      // Close existing environment panel if open
+      if (activeEnvironmentPanel) {
+        const existingPanel = dockviewApi.getPanel(activeEnvironmentPanel);
+        if (existingPanel) {
+          existingPanel.api.close();
+        }
+      }
+      
+      // Add environment panel to main dockview
+      const panel = dockviewApi.addPanel({
+        id: panelId,
+        component: 'EnvironmentPanel',
+        title: `${environment.name} - Environment`,
+        params: { environment: environment },
+      });
+      
+      // Get current task panel position to calculate left-side placement
+      // For regular panels, we need to find the panel element
+      const currentPanelElement = isFloatingPanel ? 
+        document.querySelector('.dockview-floating-group') : 
+        document.querySelector(`[data-panel-id="${api.id}"]`);
+      const panelRect = currentPanelElement?.getBoundingClientRect();
+      
+      // Position to the left of current task panel with full height
+      const x = panelRect ? panelRect.left - 710 : 100; // 700px width + 10px gap
+      const y = 0; // Start from top
+      const width = 700;
+      const height = window.innerHeight; // Full height
+      
+      // Convert to floating group
+      dockviewApi.addFloatingGroup(panel, {
+        width: width,
+        height: height,
+        x: x,
+        y: y,
+      });
+      
+      // Track this floating environment panel
+      setActiveEnvironmentPanel(panelId);
+      
+      console.log('Environment floating panel added successfully');
+    } catch (error) {
+      console.error('Error adding environment floating panel:', error);
+    }
+  };
+
   return (
     <div style={{ padding: '20px', color: 'white', height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-      <h2 style={{ marginBottom: '15px' }}>{props.api.title}</h2>
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px', gap: '15px' }}>
+        {/* Show Environment button only in regular panels (not floating panels) */}
+        {environment && !isFloatingPanel && (
+          <button
+            onClick={openEnvironmentPanel}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#4CAF50',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              transition: 'background-color 0.2s',
+              flexShrink: 0,
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = '#45a049';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = '#4CAF50';
+            }}
+          >
+            🌍 Environment
+          </button>
+        )}
+        <h2 style={{ margin: 0, flex: 1 }}>{props.api.title}</h2>
+      </div>
       
       {environment && (
         <div style={{ 
