@@ -11,26 +11,49 @@ import EnvironmentMetricsPanel from './EnvironmentMetricsPanel';
 
 import { DockviewApiContext } from './App';
 import { Button } from './components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from './components/ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select';
+import { Select, SelectItem } from './components/ui/select';
+import useAppStore from './store/useAppStore';
 import {
   SquareArrowOutUpRight,
   Plus,
-  X,
   Info,
   CheckSquare,
   GitBranch,
   Terminal,
   FileText,
-  BarChart3
+  BarChart3,
+  Pin
 } from 'lucide-react';
 
 
 const EnvironmentPanel = (props) => {
   const { params, api } = props;
-  const { environment } = params || {};
-  const { onTaskSelect } = api || {};
+  const { environment: initialEnvironment, isPinned } = params || {};
+  const { onTaskSelect, openGeneralPanel, openPinnedPanel } = api || {};
   const dockviewApi = useContext(DockviewApiContext);
+  
+  // Get store data and actions
+  const { 
+    environments, 
+    pinnedEnvironment, 
+    setPinnedEnvironment, 
+    clearPinnedEnvironment 
+  } = useAppStore();
+  
+  // State for current environment (can be different from initial if this is a general panel)
+  const [currentEnvironment, setCurrentEnvironment] = useState(
+    isPinned ? pinnedEnvironment : initialEnvironment
+  );
+  
+  // Use current environment or fallback to initial
+  const environment = currentEnvironment || initialEnvironment;
+  
+  // Update current environment when pinnedEnvironment changes (for pinned panels)
+  useEffect(() => {
+    if (isPinned && pinnedEnvironment) {
+      setCurrentEnvironment(pinnedEnvironment);
+    }
+  }, [isPinned, pinnedEnvironment]);
   
   // State for managing nested panels
   const [nestedDockviewApi, setNestedDockviewApi] = useState(null);
@@ -216,29 +239,107 @@ const EnvironmentPanel = (props) => {
 
   // Check if this panel is opened from a popover
   const isOpenedFromPopover = api?.group?.location?.type === 'popover';
+  
+  // Pin/unpin handlers
+  const handlePinEnvironment = () => {
+    if (environment) {
+      setPinnedEnvironment(environment);
+    }
+  };
+  
+  const handleUnpinEnvironment = () => {
+    clearPinnedEnvironment();
+  };
+  
+  const handleEnvironmentChange = (selectedEnvId) => {
+    const selectedEnv = environments.find(env => env.id === selectedEnvId);
+    if (selectedEnv) {
+      setCurrentEnvironment(selectedEnv);
+    }
+  };
+  
+  // Check if current environment is pinned
+  const isCurrentlyPinned = pinnedEnvironment && environment && pinnedEnvironment.id === environment.id;
 
   return (
     <div className="text-white h-full overflow-hidden">
       <div className="p-2.5 border-b border-gray-700 bg-black flex justify-between items-center">
-        <h4 className="m-0">
-          {environment ? `${environment.name} - Environment Details` : 'Environment Details'}
-        </h4>
+        <div className="flex items-center gap-3 flex-1">
+          <h4 className="m-0 text-sm font-medium pr-2">
+            {isPinned ? 'Pinned Env' : 'Env: '}
+          </h4>
+          
+          {/* Environment Dropdown - only show if not pinned or not opened from popover */}
+          {!isPinned && !isOpenedFromPopover && (
+            <Select
+              value={environment?.id || ''}
+              onValueChange={handleEnvironmentChange}
+              className="h-7 min-h-0 py-0 text-sm"
+            >
+              {environments.map((env) => (
+                <SelectItem
+                  key={env.id}
+                  value={env.id}
+                  className="h-7 min-h-0 py-0 text-sm"
+                >
+                  {env.name}
+                </SelectItem>
+              ))}
+            </Select>
+          )}
+          
+          {/* Show current environment name if pinned */}
+          {isPinned && environment && (
+            <span className="text-sm text-gray-300">
+              {environment.name}
+            </span>
+          )}
+        </div>
+        
         <div className="flex items-center gap-2">
-          {/* Open in new panel button (if opened from popover) */}
-          {isOpenedFromPopover && (
+          {/* Pin/Unpin button - only show if not opened from popover */}
+          {/* {!isOpenedFromPopover && environment && (
+            <Button
+              onClick={isCurrentlyPinned ? handleUnpinEnvironment : handlePinEnvironment}
+              className="h-6 w-6 p-0 flex-shrink-0"
+              title={isCurrentlyPinned ? "Unpin environment" : "Pin environment"}
+              variant={isCurrentlyPinned ? "default" : "outline"}
+            >
+              {isCurrentlyPinned ? (
+                <PinOff className="h-3 w-3" />
+              ) : (
+                <Pin className="h-3 w-3" />
+              )}
+            </Button>
+          )} */}
+          
+          {/* Open Environment Panel button (if opened from popover) */}
+          {isOpenedFromPopover && openGeneralPanel && (
             <Button
               onClick={(e) => {
                 e.stopPropagation();
-                openEnvironmentInNewPanel(environment);
-                // Call onPanelOpen callback if provided (for popover closing)
-                if (api?.onPanelOpen) {
-                  api.onPanelOpen();
-                }
+                openGeneralPanel();
               }}
               className="h-6 w-6 p-0 flex-shrink-0"
-              title="Open in new panel"
+              title="Open Environment Panel"
+              variant="outline"
             >
               <SquareArrowOutUpRight className="h-3 w-3" />
+            </Button>
+          )}
+          
+          {/* Open Pinned Panel button (if opened from popover) */}
+          {isOpenedFromPopover && openPinnedPanel && (
+            <Button
+              onClick={(e) => {
+                e.stopPropagation();
+                openPinnedPanel();
+              }}
+              className="h-6 w-6 p-0 flex-shrink-0"
+              title="Open Pinned Panel"
+              variant="outline"
+            >
+              <Pin className="h-3 w-3" />
             </Button>
           )}
         </div>

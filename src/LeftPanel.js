@@ -6,6 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from './components/ui/popover
 import EnvironmentPanel from './EnvironmentPanel';
 import TaskPanel from './TaskPanel';
 import useAppStore from './store/useAppStore';
+import { SquareArrowOutUpRight, Pin } from 'lucide-react';
 
 const LeftPanel = (props) => {
   const { api } = props;
@@ -40,6 +41,43 @@ const LeftPanel = (props) => {
     const selectedTask = selectedTaskInEnv[envId] || null;
     const handleTaskSelect = (task) => setSelectedTaskInEnv(envId, task);
 
+    // Functions to open environment panels
+    const openGeneralEnvironmentPanel = () => {
+      if (dockviewApi) {
+        const panelId = `general_environment_panel`;
+        try {
+          dockviewApi.addPanel({
+            id: panelId,
+            component: 'EnvironmentPanel',
+            title: 'Environment Panel',
+            params: { environment: environment },
+            position: { referencePanel: 'left_panel', direction: 'right' },
+          });
+          setPopoverOpen(`env_${envId}`, false);
+        } catch (error) {
+          console.error('Error adding general environment panel:', error);
+        }
+      }
+    };
+
+    const openPinnedEnvironmentPanel = () => {
+      if (dockviewApi) {
+        const panelId = `pinned_environment_panel`;
+        try {
+          dockviewApi.addPanel({
+            id: panelId,
+            component: 'EnvironmentPanel',
+            title: 'Pinned Environment',
+            params: { environment: environment, isPinned: true },
+            position: { referencePanel: 'left_panel', direction: 'right' },
+          });
+          setPopoverOpen(`env_${envId}`, false);
+        } catch (error) {
+          console.error('Error adding pinned environment panel:', error);
+        }
+      }
+    };
+
     return (
       <div className="h-full flex">
         {/* Environment Panel - Left Side */}
@@ -52,7 +90,9 @@ const LeftPanel = (props) => {
                 title: `${environment?.name || 'Environment'} - Environment`,
                 group: { location: { type: 'popover' } },
                 onPanelOpen: () => setPopoverOpen(`env_${envId}`, false),
-                onTaskSelect: handleTaskSelect
+                onTaskSelect: handleTaskSelect,
+                openGeneralPanel: openGeneralEnvironmentPanel,
+                openPinnedPanel: openPinnedEnvironmentPanel
               }}
             />
           </DockviewApiContext.Provider>
