@@ -76,9 +76,7 @@ const App = () => {
   const HeaderStrip = () => (
     <div className="bg-gray-900 border-b border-gray-700 px-3 py-1 flex items-center justify-between h-8">
       <div className="flex items-center space-x-3">
-        <h1 className="text-white font-medium text-sm">CodeBolt Layout</h1>
-      </div>
-      <div className="flex items-center space-x-1">
+        {/* <h1 className="text-white font-medium text-sm">CodeBolt Layout</h1> */}
         <span 
           className="px-2 py-0.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-full cursor-pointer transition-colors inline-flex items-center"
           onClick={() => {
@@ -115,6 +113,7 @@ const App = () => {
           Chat Mode
         </span>
       </div>
+     
     </div>
   );
 

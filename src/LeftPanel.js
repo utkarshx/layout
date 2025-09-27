@@ -164,6 +164,8 @@ const LeftPanel = (props) => {
 
   return (
     <div className="p-2.5 text-white h-full overflow-y-auto">
+     
+
       {/* Header with Tabs and Controls */}
       <div className="flex items-center justify-between mb-4">
         {/* Left-aligned Tabs */}
