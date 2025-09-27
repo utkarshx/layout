@@ -22,8 +22,7 @@ import {
   Terminal,
   FileText,
   BarChart3,
-  Pin,
-  PinOff
+  Pin
 } from 'lucide-react';
 
 
@@ -297,19 +296,23 @@ const EnvironmentPanel = (props) => {
     <div className="text-white h-full overflow-hidden">
       <div className="p-2.5 border-b border-gray-700 bg-black flex justify-between items-center">
         <div className="flex items-center gap-3 flex-1">
-          <h4 className="m-0 text-sm font-medium">
-            {isPinned ? 'Pinned Environment' : 'Environment Details'}
+          <h4 className="m-0 text-sm font-medium pr-2">
+            {isPinned ? 'Pinned Env' : 'Env: '}
           </h4>
           
           {/* Environment Dropdown - only show if not pinned or not opened from popover */}
           {!isPinned && !isOpenedFromPopover && (
-            <Select 
-              value={environment?.name || ''}
+            <Select
+              value={environment?.id || ''}
               onValueChange={handleEnvironmentChange}
-              className="w-48"
+              className="h-7 min-h-0 py-0 text-sm"
             >
               {environments.map((env) => (
-                <SelectItem key={env.id} value={env.id}>
+                <SelectItem
+                  key={env.id}
+                  value={env.id}
+                  className="h-7 min-h-0 py-0 text-sm"
+                >
                   {env.name}
                 </SelectItem>
               ))}
@@ -326,7 +329,7 @@ const EnvironmentPanel = (props) => {
         
         <div className="flex items-center gap-2">
           {/* Pin/Unpin button - only show if not opened from popover */}
-          {!isOpenedFromPopover && environment && (
+          {/* {!isOpenedFromPopover && environment && (
             <Button
               onClick={isCurrentlyPinned ? handleUnpinEnvironment : handlePinEnvironment}
               className="h-6 w-6 p-0 flex-shrink-0"
@@ -339,7 +342,7 @@ const EnvironmentPanel = (props) => {
                 <Pin className="h-3 w-3" />
               )}
             </Button>
-          )}
+          )} */}
           
           {/* Open Environment Panel button (if opened from popover) */}
           {isOpenedFromPopover && openGeneralPanel && (

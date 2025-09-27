@@ -6,6 +6,12 @@ import { ChevronDown, Check } from 'lucide-react';
 export const Select = ({ value, onValueChange, children, ...props }) => {
   const [open, setOpen] = useState(false);
 
+  // Find the display text for the selected value
+  const selectedChild = React.Children.toArray(children).find(
+    child => child.props.value === value
+  );
+  const displayText = selectedChild ? selectedChild.props.children : "Select...";
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -13,14 +19,14 @@ export const Select = ({ value, onValueChange, children, ...props }) => {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="justify-between"
+          className="justify-between bg-gray-800 border-gray-600 text-white hover:bg-gray-700 hover:text-white"
           {...props}
         >
-          {value || "Select..."}
+          {displayText}
           <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-0">
+      <PopoverContent className="p-0 bg-gray-800 border-gray-600">
         <div className="max-h-60 overflow-auto">
           {React.Children.map(children, (child) =>
             React.cloneElement(child, {
@@ -40,11 +46,11 @@ export const Select = ({ value, onValueChange, children, ...props }) => {
 export const SelectItem = ({ value, children, onSelect, isSelected, ...props }) => {
   return (
     <div
-      className="flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-gray-700 hover:text-white data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-white"
+      className="flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-gray-700 hover:text-white data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-white bg-gray-800"
       onClick={() => onSelect(value)}
       {...props}
     >
-      <Check className={`mr-2 h-4 w-4 ${isSelected ? 'opacity-100' : 'opacity-0'}`} />
+      <Check className={`mr-2 h-4 w-4 ${isSelected ? 'opacity-100 text-blue-400' : 'opacity-0'}`} />
       {children}
     </div>
   );
