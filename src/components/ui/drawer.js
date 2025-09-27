@@ -12,11 +12,12 @@ const DrawerPortal = DrawerPrimitive.Portal
 
 const DrawerClose = DrawerPrimitive.Close
 
-const DrawerOverlay = React.forwardRef(({ className, ...props }, ref) => (
+const DrawerOverlay = React.forwardRef(({ className, withinContainer = false, ...props }, ref) => (
   <DrawerPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      withinContainer ? "absolute" : "fixed",
+      "inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className
     )}
     {...props}
@@ -25,7 +26,7 @@ const DrawerOverlay = React.forwardRef(({ className, ...props }, ref) => (
 DrawerOverlay.displayName = DrawerPrimitive.Overlay.displayName
 
 const drawerVariants = cva(
-  "fixed z-50 gap-4 bg-background p-6 shadow-lg transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-500",
+  "z-50 gap-4 bg-background p-6 shadow-lg transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-500",
   {
     variants: {
       side: {
@@ -43,12 +44,12 @@ const drawerVariants = cva(
   }
 )
 
-const DrawerContent = React.forwardRef(({ side = "bottom", className, children, ...props }, ref) => (
-  <DrawerPortal>
-    <DrawerOverlay />
+const DrawerContent = React.forwardRef(({ side = "bottom", className, children, container, withinContainer = false, ...props }, ref) => (
+  <DrawerPortal container={container}>
+    <DrawerOverlay withinContainer={withinContainer} />
     <DrawerPrimitive.Content
       ref={ref}
-      className={cn(drawerVariants({ side }), className)}
+      className={cn(withinContainer ? "absolute" : "fixed", drawerVariants({ side }), className)}
       {...props}
     >
       {children}

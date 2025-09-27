@@ -50,6 +50,7 @@ const ChatPanel = (props) => {
   // Get environments from Zustand store
   const { environments } = useAppStore();
   const messagesEndRef = useRef(null);
+  const panelRef = useRef(null);
 
   const activeChat = chats.find(chat => chat.id === activeChatId);
 
@@ -214,7 +215,7 @@ const ChatPanel = (props) => {
   };
 
   return (
-    <div className="p-5 text-foreground bg-background h-[80%] overflow-hidden flex">
+    <div ref={panelRef} className="p-5 text-foreground bg-background h-[80%] overflow-hidden flex relative">
       {/* Left Sidebar - Show when sidebar is enabled */}
       {showSidebar && (
         <div className="w-64 border-r border-border pr-4 mr-4 flex-shrink-0">
@@ -363,7 +364,7 @@ const ChatPanel = (props) => {
                         View Task
                       </Button>
                     </DrawerTrigger>
-                    <DrawerContent className="h-[80vh]">
+                    <DrawerContent container={panelRef.current} withinContainer className="h-[80%]">
                       <div className="mx-auto w-full max-w-4xl h-full flex flex-col">
                         <DrawerHeader className="border-b border-border pb-4">
                           <div className="flex items-center justify-between">
