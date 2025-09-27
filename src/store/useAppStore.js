@@ -24,6 +24,7 @@ const useAppStore = create(
       selectedTaskInEnv: {},
       taskSortBy: 'name',
       taskFilterBy: 'all',
+      pinnedEnvironment: null,
 
       // Actions for environment management
       addEnvironment: (environment) =>
@@ -117,6 +118,13 @@ const useAppStore = create(
       setTaskFilterBy: (filterBy) =>
         set(() => ({ taskFilterBy: filterBy }), false, 'setTaskFilterBy'),
 
+      // Actions for pinned environment management
+      setPinnedEnvironment: (environment) =>
+        set(() => ({ pinnedEnvironment: environment }), false, 'setPinnedEnvironment'),
+
+      clearPinnedEnvironment: () =>
+        set(() => ({ pinnedEnvironment: null }), false, 'clearPinnedEnvironment'),
+
       // Reset actions
       resetUIState: () =>
         set(() => ({
@@ -125,6 +133,7 @@ const useAppStore = create(
           selectedTaskInEnv: {},
           taskSortBy: 'name',
           taskFilterBy: 'all',
+          pinnedEnvironment: null,
         }), false, 'resetUIState'),
     }),
     {
