@@ -8,6 +8,7 @@ import TaskPanel from './TaskPanel';
 import TaskDetailPanel from './TaskDetailPanel';
 import TaskChatPanel from './TaskChatPanel';
 import ChatPanel from './ChatPanel';
+import TodoPanel from './TodoPanel';
 import EnvironmentTasksPanel from './EnvironmentTasksPanel';
 import EnvironmentDiffPanel from './EnvironmentDiffPanel';
 import EnvironmentInfoPanel from './EnvironmentInfoPanel';
@@ -30,6 +31,7 @@ const App = () => {
     TaskDetailPanel: (props) => <TaskDetailPanel {...props} />,
     TaskChatPanel: (props) => <TaskChatPanel {...props} />,
     ChatPanel: (props) => <ChatPanel {...props} />,
+    TodoPanel: (props) => <TodoPanel {...props} />,
     EnvironmentTasksPanel: (props) => <EnvironmentTasksPanel {...props} />,
     EnvironmentDiffPanel: (props) => <EnvironmentDiffPanel {...props} />,
     EnvironmentInfoPanel: (props) => <EnvironmentInfoPanel {...props} />,
@@ -57,6 +59,15 @@ const App = () => {
         position: { referencePanel: 'left_panel', direction: 'right' },
       });
       console.log('Chat panel added successfully');
+
+      // Add todo panel as a separate panel
+      api.addPanel({
+        id: 'todo_panel',
+        component: 'TodoPanel',
+        title: 'Todo Lists',
+        position: { referencePanel: 'chat_panel', direction: 'right' },
+      });
+      console.log('Todo panel added successfully');
     } catch (error) {
       console.error('Error adding panels:', error);
     }
