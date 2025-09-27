@@ -89,30 +89,41 @@ const EnvironmentDiffPanel = (props) => {
           </div>
         </div>
         
-        <div className="space-y-1">
+        <div className="space-y-2">
           {diffData.map((diff, index) => (
-            <div key={index} className="bg-gray-800 transition-colors">
+            <div key={index} className="border border-gray-700 rounded">
               <div 
-                className="p-3 hover:bg-gray-700 cursor-pointer transition-colors"
+                className="px-3 py-2 hover:bg-gray-800 cursor-pointer transition-colors flex items-center justify-between"
                 onClick={() => toggleExpanded(index)}
               >
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-400 text-xs">
-                      {expandedItems[index] ? '▼' : '▶'}
-                    </span>
-                    <div className="font-mono text-sm text-gray-200">
-                      {diff.file}
-                    </div>
-                  </div>
-                  <div className="font-mono text-xs text-gray-400">
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-500 text-xs w-3">
+                    {expandedItems[index] ? '▼' : '▶'}
+                  </span>
+                  <span className="font-mono text-sm text-gray-300">
+                    {diff.file}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs px-1.5 py-0.5 rounded ${
+                    diff.type === 'added' ? 'text-green-400' :
+                    diff.type === 'removed' ? 'text-red-400' :
+                    'text-yellow-400'
+                  }`}>
                     {getDiffStats(diff)}
-                  </div>
+                  </span>
+                  <span className={`text-xs px-1.5 py-0.5 rounded ${
+                    diff.type === 'added' ? 'bg-green-900/20 text-green-400' :
+                    diff.type === 'removed' ? 'bg-red-900/20 text-red-400' :
+                    'bg-yellow-900/20 text-yellow-400'
+                  }`}>
+                    {diff.type === 'modified' ? 'M' : diff.type === 'added' ? 'A' : 'D'}
+                  </span>
                 </div>
               </div>
               
               {expandedItems[index] && (
-                <div className="border-t border-gray-700">
+                <div className="bg-gray-800/50">
                   <div className="grid grid-cols-2 gap-0">
                     <div className="p-4 border-r border-gray-700">
                       <div className="text-xs text-gray-400 mb-2 font-medium">

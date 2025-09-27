@@ -68,8 +68,8 @@ const App = () => {
         <h1 className="text-white font-medium text-sm">CodeBolt Layout</h1>
       </div>
       <div className="flex items-center space-x-1">
-        <button 
-          className="px-2 py-0.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors"
+        <span 
+          className="px-2 py-0.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-full cursor-pointer transition-colors inline-flex items-center"
           onClick={() => {
             if (dockviewApi) {
               // Check if task panel already exists
@@ -87,10 +87,10 @@ const App = () => {
             }
           }}
         >
-          Tasks
-        </button>
-        <button 
-          className="px-2 py-0.5 bg-green-600 hover:bg-green-700 text-white text-xs rounded transition-colors"
+          Tasks Mode
+        </span>
+        <span 
+          className="px-2 py-0.5 bg-green-600 hover:bg-green-700 text-white text-xs rounded-full cursor-pointer transition-colors inline-flex items-center"
           onClick={() => {
             if (dockviewApi) {
               // Focus on chat panel if it exists
@@ -101,8 +101,8 @@ const App = () => {
             }
           }}
         >
-          Chat
-        </button>
+          Chat Mode
+        </span>
       </div>
     </div>
   );
