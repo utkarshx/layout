@@ -1,6 +1,4 @@
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from './components/ui/card';
-import { Button } from './components/ui/button';
 
 const EnvironmentInfoPanel = (props) => {
   const { params } = props;
@@ -22,13 +20,7 @@ const EnvironmentInfoPanel = (props) => {
     uptime: '99.9%'
   };
 
-  const services = [
-    { name: 'API Gateway', status: 'Running', version: '2.1.0', cpu: '45%', memory: '60%' },
-    { name: 'Database', status: 'Running', version: 'PostgreSQL 14', cpu: '30%', memory: '75%' },
-    { name: 'Cache', status: 'Running', version: 'Redis 7.0', cpu: '15%', memory: '40%' },
-    { name: 'Queue', status: 'Running', version: 'RabbitMQ 3.12', cpu: '20%', memory: '35%' },
-    { name: 'Storage', status: 'Running', version: 'MinIO 2023', cpu: '10%', memory: '25%' }
-  ];
+  
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -39,12 +31,7 @@ const EnvironmentInfoPanel = (props) => {
     }
   };
 
-  const getResourceColor = (usage) => {
-    const value = parseInt(usage);
-    if (value >= 80) return '#f44336';
-    if (value >= 60) return '#FF9800';
-    return '#4CAF50';
-  };
+  
 
   return (
     <div className="p-4 text-white h-full overflow-y-auto">

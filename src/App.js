@@ -4,7 +4,7 @@ import 'dockview-core/dist/styles/dockview.css';
 import './App.css';
 import LeftPanel from './LeftPanel';
 import EnvironmentPanel from './EnvironmentPanel';
-import EnvironmentLeftPanel from './EnvironmentLeftPanel';
+import EnvironmentListPanel from './EnvironmentListPanel';
 import TaskPanel from './TaskPanel';
 import TaskDetailPanel from './TaskDetailPanel';
 import TaskChatPanel from './TaskChatPanel';
@@ -27,7 +27,7 @@ const App = () => {
 
   const components = useMemo(() => ({
     LeftPanel: (props) => <LeftPanel {...props} dockviewApi={dockviewApi} />,
-    EnvironmentLeftPanel: (props) => <EnvironmentLeftPanel {...props} dockviewApi={dockviewApi} />,
+    EnvironmentListPanel: (props) => <EnvironmentListPanel {...props} dockviewApi={dockviewApi} />,
     EnvironmentPanel: (props) => <EnvironmentPanel {...props} dockviewApi={dockviewApi} />,
     TaskPanel: (props) => <TaskPanel {...props} />,
     TaskDetailPanel: (props) => <TaskDetailPanel {...props} />,
@@ -63,13 +63,20 @@ const App = () => {
       console.log('Chat panel added successfully');
 
       // Add todo panel as a separate panel
-      // api.addPanel({
-      //   id: 'todo_panel',
-      //   component: 'TodoPanel',
-      //   title: 'Todo Lists',
-      //   position: { referencePanel: 'chat_panel', direction: 'right' },
-      // });
-      console.log('Todo panel added successfully');
+      api.addPanel({
+        id: 'todo_panel',
+        component: 'TodoPanel',
+        title: 'Todo Lists',
+        position: { referencePanel: 'chat_panel', direction: 'right' },
+      });
+
+      api.addPanel({
+        id: 'environment_list',
+        component: 'EnvironmentListPanel',
+        title: 'Environment Lists',
+        position: { referencePanel: 'left_panel', direction: 'below' },
+      });
+      console.log('Environment list panel added successfully');
     } catch (error) {
       console.error('Error adding panels:', error);
     }

@@ -171,42 +171,7 @@ const LeftPanel = (props) => {
 {/* Right-side Controls */}
         <div className="flex items-center gap-2">
             {/* Environments Dropdown */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="bg-gray-800 border-gray-700 hover:bg-gray-700">
-                  Environments
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-48 bg-gray-900 border-gray-700">
-                <div className="space-y-1">
-                  {environments.map((env) => (
-                    <Popover
-                      key={env.id}
-                      open={openPopovers[`env_${env.id}`] || false}
-                      onOpenChange={(open) => setPopoverOpen(`env_${env.id}`, open)}
-                    >
-                      <PopoverTrigger asChild>
-                        <div
-                          className="cursor-pointer p-2 hover:bg-gray-700 rounded text-sm"
-                          onClick={() => setPopoverOpen(`env_${env.id}`, true)}
-                        >
-                          {env.name}
-                        </div>
-                      </PopoverTrigger>
-                      <PopoverContent 
-                        className="w-[800px] h-screen p-0 bg-gray-900 border-gray-700"
-                        side="left"
-                        align="center"
-                      >
-                        <div className="h-full">
-                          <SplitEnvironmentPanel environment={env} envId={env.id} />
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
+           
 
             {/* Sort Dropdown */}
             <Popover>

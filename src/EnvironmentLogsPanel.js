@@ -9,23 +9,23 @@ const EnvironmentLogsPanel = (props) => {
   const [logLevel, setLogLevel] = useState('all');
   const logsRef = useRef(null);
 
-  // Mock log data
-  const mockLogs = [
-    { timestamp: '2024-01-26 10:30:15', level: 'INFO', service: 'api-gateway', message: 'Server started on port 3000' },
-    { timestamp: '2024-01-26 10:30:16', level: 'INFO', service: 'database', message: 'Database connection established' },
-    { timestamp: '2024-01-26 10:30:17', level: 'INFO', service: 'redis', message: 'Redis cache connected successfully' },
-    { timestamp: '2024-01-26 10:30:20', level: 'DEBUG', service: 'api-gateway', message: 'Processing health check request' },
-    { timestamp: '2024-01-26 10:30:25', level: 'INFO', service: 'api-gateway', message: 'GET /api/users - 200 OK (45ms)' },
-    { timestamp: '2024-01-26 10:30:30', level: 'WARN', service: 'database', message: 'Query took longer than expected: 1.2s' },
-    { timestamp: '2024-01-26 10:30:35', level: 'INFO', service: 'api-gateway', message: 'POST /api/auth/login - 200 OK (123ms)' },
-    { timestamp: '2024-01-26 10:30:40', level: 'ERROR', service: 'payment', message: 'Payment gateway timeout - retrying...' },
-    { timestamp: '2024-01-26 10:30:42', level: 'INFO', service: 'payment', message: 'Payment processed successfully on retry' },
-    { timestamp: '2024-01-26 10:30:45', level: 'DEBUG', service: 'cache', message: 'Cache hit rate: 85%' },
-    { timestamp: '2024-01-26 10:30:50', level: 'INFO', service: 'api-gateway', message: 'GET /api/products - 200 OK (67ms)' },
-    { timestamp: '2024-01-26 10:30:55', level: 'WARN', service: 'monitoring', message: 'CPU usage above 80%' },
-  ];
-
   useEffect(() => {
+    // Mock log data
+    const mockLogs = [
+      { timestamp: '2024-01-26 10:30:15', level: 'INFO', service: 'api-gateway', message: 'Server started on port 3000' },
+      { timestamp: '2024-01-26 10:30:16', level: 'INFO', service: 'database', message: 'Database connection established' },
+      { timestamp: '2024-01-26 10:30:17', level: 'INFO', service: 'redis', message: 'Redis cache connected successfully' },
+      { timestamp: '2024-01-26 10:30:20', level: 'DEBUG', service: 'api-gateway', message: 'Processing health check request' },
+      { timestamp: '2024-01-26 10:30:25', level: 'INFO', service: 'api-gateway', message: 'GET /api/users - 200 OK (45ms)' },
+      { timestamp: '2024-01-26 10:30:30', level: 'WARN', service: 'database', message: 'Query took longer than expected: 1.2s' },
+      { timestamp: '2024-01-26 10:30:35', level: 'INFO', service: 'api-gateway', message: 'POST /api/auth/login - 200 OK (123ms)' },
+      { timestamp: '2024-01-26 10:30:40', level: 'ERROR', service: 'payment', message: 'Payment gateway timeout - retrying...' },
+      { timestamp: '2024-01-26 10:30:42', level: 'INFO', service: 'payment', message: 'Payment processed successfully on retry' },
+      { timestamp: '2024-01-26 10:30:45', level: 'DEBUG', service: 'cache', message: 'Cache hit rate: 85%' },
+      { timestamp: '2024-01-26 10:30:50', level: 'INFO', service: 'api-gateway', message: 'GET /api/products - 200 OK (67ms)' },
+      { timestamp: '2024-01-26 10:30:55', level: 'WARN', service: 'monitoring', message: 'CPU usage above 80%' },
+    ];
+    
     setLogs(mockLogs);
     
     // Simulate real-time logs
@@ -48,7 +48,7 @@ const EnvironmentLogsPanel = (props) => {
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [mockLogs]);
+  }, []);
 
   // Auto-scroll to bottom when new logs arrive
   useEffect(() => {

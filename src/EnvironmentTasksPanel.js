@@ -1,28 +1,12 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { DockviewApiContext } from './App';
-import { Card, CardHeader, CardTitle, CardContent } from './components/ui/card';
-import { Button } from './components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from './components/ui/popover';
-import TaskPanel from './TaskPanel';
+import React, { useState } from 'react';
 
 const EnvironmentTasksPanel = (props) => {
   const { params, onTaskSelect } = props;
   const { environment } = params || {};
-  const dockviewApi = useContext(DockviewApiContext);
-  
-  // Popover state management
-  const [openPopovers, setOpenPopovers] = useState({});
   
   // Selected task for split view
   const [selectedTask, setSelectedTask] = useState(null);
 
-  // Popover management functions
-  const setPopoverOpen = (id, isOpen) => {
-    setOpenPopovers(prev => ({
-      ...prev,
-      [id]: isOpen
-    }));
-  };
 
   const environmentTasks = [
     { id: 'env_task_1', name: 'Initialize Environment', status: 'Completed', priority: 'High' },

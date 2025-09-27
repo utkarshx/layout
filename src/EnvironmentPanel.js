@@ -35,9 +35,7 @@ const EnvironmentPanel = (props) => {
   // Get store data and actions
   const { 
     environments, 
-    pinnedEnvironment, 
-    setPinnedEnvironment, 
-    clearPinnedEnvironment 
+    pinnedEnvironment 
   } = useAppStore();
   
   // State for current environment (can be different from initial if this is a general panel)
@@ -226,61 +224,12 @@ const EnvironmentPanel = (props) => {
   };
 
 
-  // Function to remove a panel
-  const removePanel = useCallback((panelId) => {
-    if (!nestedDockviewApi || !activePanels.has(panelId)) return;
-
-    try {
-      nestedDockviewApi.removePanel(panelId);
-      setActivePanels(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(panelId);
-        return newSet;
-      });
-      console.log(`Removed panel: ${panelId}`);
-    } catch (error) {
-      console.error('Error removing panel:', error);
-    }
-  }, [nestedDockviewApi, activePanels]);
-
-  const openEnvironmentInNewPanel = (env) => {
-    console.log('openEnvironmentInNewPanel called:', env);
-    console.log('dockviewApi available:', !!dockviewApi);
-    
-    if (dockviewApi) {
-      const panelId = `environment_panel_${env.id}`;
-      console.log('Attempting to add panel:', panelId);
-      
-      try {
-        dockviewApi.addPanel({
-          id: panelId,
-          component: 'EnvironmentPanel',
-          title: env.name,
-          params: { environment: env },
-          position: { referencePanel: 'left_panel', direction: 'right' },
-        });
-        console.log('Panel added successfully');
-      } catch (error) {
-        console.error('Error adding panel:', error);
-      }
-    } else {
-      console.error('No dockview API available');
-    }
-  };
+  
 
   // Check if this panel is opened from a popover
   const isOpenedFromPopover = api?.group?.location?.type === 'popover';
   
-  // Pin/unpin handlers
-  const handlePinEnvironment = () => {
-    if (environment) {
-      setPinnedEnvironment(environment);
-    }
-  };
   
-  const handleUnpinEnvironment = () => {
-    clearPinnedEnvironment();
-  };
   
   const handleEnvironmentChange = (selectedEnvId) => {
     const selectedEnv = environments.find(env => env.id === selectedEnvId);
@@ -289,8 +238,7 @@ const EnvironmentPanel = (props) => {
     }
   };
   
-  // Check if current environment is pinned
-  const isCurrentlyPinned = pinnedEnvironment && environment && pinnedEnvironment.id === environment.id;
+  
 
   return (
     <div className="text-white h-full overflow-hidden">
