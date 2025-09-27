@@ -230,7 +230,7 @@ const TaskPanel = (props) => {
           {!isEnvironmentSelected && environment && !isFloatingPanel && (
             <Button
               onClick={() => openEnvironmentPanel(environment)}
-              className="p-2 px-4 bg-green-600 hover:bg-green-700 text-white rounded cursor-pointer text-sm font-bold flex items-center gap-1.5 transition-colors flex-shrink-0"
+              className="p-2 px-4 bg-gray-700 hover:bg-gray-600 text-white rounded cursor-pointer text-sm font-bold flex items-center gap-1.5 transition-colors flex-shrink-0 border border-gray-600"
             >
               Environment
             </Button>
@@ -251,7 +251,7 @@ const TaskPanel = (props) => {
                   }
                 }}
                   // onClick={openEnvironmentPanelInPopOver}
-                  className="p-2 px-4 bg-green-600 hover:bg-green-700 text-white rounded cursor-pointer text-sm font-bold flex items-center gap-1.5 transition-colors flex-shrink-0"
+                  className="p-2 px-4 bg-gray-700 hover:bg-gray-600 text-white rounded cursor-pointer text-sm font-bold flex items-center gap-1.5 transition-colors flex-shrink-0 border border-gray-600"
                 >
                    Environment 🌍
                 </Button>

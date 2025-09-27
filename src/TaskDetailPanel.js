@@ -24,7 +24,7 @@ const TaskDetailPanel = (props) => {
           {task && (
             <div className="mt-3.75">
               <p><strong>Task Name:</strong> {task.name}</p>
-              <p><strong>Status:</strong> <span className="text-orange-500">In Progress</span></p>
+              <p><strong>Status:</strong> <span className="text-gray-300">In Progress</span></p>
               <p><strong>Priority:</strong> High</p>
               <p><strong>Assigned to:</strong> John Doe</p>
               <p><strong>Created:</strong> 2024-01-15</p>
@@ -35,10 +35,10 @@ const TaskDetailPanel = (props) => {
         
         <div className="mb-5">
           <h4 className="mb-2">Actions</h4>
-          <Button className="m-1 bg-blue-600 hover:bg-blue-700 text-white rounded cursor-pointer">
+          <Button className="m-1 bg-gray-700 hover:bg-gray-600 text-white rounded cursor-pointer border border-gray-600">
             Execute Task
           </Button>
-          <Button className="m-1 bg-gray-600 hover:bg-gray-700 text-white rounded cursor-pointer">
+          <Button className="m-1 bg-gray-600 hover:bg-gray-500 text-white rounded cursor-pointer border border-gray-500">
             View Logs
           </Button>
         </div>
@@ -46,7 +46,7 @@ const TaskDetailPanel = (props) => {
         <div>
           <h4 className="mb-2">Status</h4>
           <div className="bg-gray-800 p-2.5 rounded border border-gray-700">
-            <div className="text-green-500">● Ready</div>
+            <div className="text-gray-300">● Ready</div>
             <div className="text-xs text-gray-400 mt-1">
               Last executed: Never
             </div>

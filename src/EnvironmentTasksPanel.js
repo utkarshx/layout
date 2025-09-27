@@ -33,23 +33,6 @@ const EnvironmentTasksPanel = (props) => {
   ];
 
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Completed': return '#4CAF50';
-      case 'In Progress': return '#FF9800';
-      case 'Pending': return '#888';
-      default: return '#888';
-    }
-  };
-
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 'High': return '#f44336';
-      case 'Medium': return '#FF9800';
-      case 'Low': return '#4CAF50';
-      default: return '#888';
-    }
-  };
 
 
   return (
@@ -78,23 +61,17 @@ const EnvironmentTasksPanel = (props) => {
               }}
               className={`p-3 cursor-pointer transition-colors ${
                 selectedTask?.id === task.id 
-                  ? 'bg-blue-800' 
+                  ? 'bg-gray-700 border-l-4 border-gray-400' 
                   : 'bg-gray-800 hover:bg-gray-700'
               }`}
             >
               <div className="flex justify-between items-center">
                 <div className="font-medium text-sm">{task.name}</div>
                 <div className="flex gap-2">
-                  <span className={`text-xs px-2 py-1 rounded text-white ${
-                    task.priority === 'High' ? 'bg-red-600' : 
-                    task.priority === 'Medium' ? 'bg-orange-600' : 'bg-green-600'
-                  }`}>
+                  <span className="text-xs px-2 py-1 rounded bg-gray-600 text-gray-200 border border-gray-500">
                     {task.priority}
                   </span>
-                  <span className={`text-xs px-2 py-1 rounded text-white ${
-                    task.status === 'Completed' ? 'bg-green-600' : 
-                    task.status === 'In Progress' ? 'bg-orange-600' : 'bg-gray-600'
-                  }`}>
+                  <span className="text-xs px-2 py-1 rounded bg-gray-700 text-gray-200 border border-gray-500">
                     {task.status}
                   </span>
                 </div>
