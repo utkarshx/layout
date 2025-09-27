@@ -6,7 +6,6 @@ import { Popover, PopoverContent, PopoverTrigger } from './components/ui/popover
 import EnvironmentPanel from './EnvironmentPanel';
 import TaskPanel from './TaskPanel';
 import useAppStore from './store/useAppStore';
-import { SquareArrowOutUpRight, Pin } from 'lucide-react';
 
 const LeftPanel = (props) => {
   const { api } = props;
@@ -359,6 +358,7 @@ const LeftPanel = (props) => {
             })}
           </div>
         )}
+
       </div>
     </div>
   );
