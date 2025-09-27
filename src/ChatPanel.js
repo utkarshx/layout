@@ -2,9 +2,20 @@ import React, { useState, useRef, useEffect, useContext } from 'react';
 import { DockviewApiContext } from './App';
 import { Button } from './components/ui/button';
 import { Popover, PopoverTrigger, PopoverContent } from './components/ui/popover';
-import { Info, GitCompare, Menu, PanelLeft } from 'lucide-react';
+import { 
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from './components/ui/drawer';
+import { Info, GitCompare, Menu, PanelLeft, X } from 'lucide-react';
 import TaskPanel from './TaskPanel';
 import EnvironmentPanel from './EnvironmentPanel';
+import TaskDetailPanel from './TaskDetailPanel';
 import useAppStore from './store/useAppStore';
 
 const ChatPanel = (props) => {
@@ -32,6 +43,9 @@ const ChatPanel = (props) => {
   const [selectedEnvironment, setSelectedEnvironment] = useState(null);
   const [chatListOpen, setChatListOpen] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
+  const [taskViewMode, setTaskViewMode] = useState('chat'); // 'chat' or 'detail'
+  const [showTaskTabs, setShowTaskTabs] = useState(false);
+  const [taskDrawerOpen, setTaskDrawerOpen] = useState(false);
   
   // Get environments from Zustand store
   const { environments } = useAppStore();
@@ -332,32 +346,73 @@ const ChatPanel = (props) => {
 
             {/* Action Buttons */}
             <div className="flex items-center gap-1">
-              {/* View Task Details Button - Show for tasks */}
+              {/* Task Tabs and View Task Button - Show for tasks */}
               {(activeChat?.type === 'task' || sendMode === 'schedule') && (
-                <Popover open={taskPopoverOpen} onOpenChange={setTaskPopoverOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="subtle"
-                      size="sm"
-                      className="text-xs"
-                    >
-                      View Task
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    className={showEnvironmentInTaskPopover ? "w-[1600px] h-screen p-0 bg-gray-900 border-gray-700" : "w-[800px] h-screen p-0 bg-gray-900 border-gray-700"}
-                    side="left"
-                    align="center"
-                  >
-                    <div className="h-full">
-                      <SplitEnvironmentPanel
-                        environment={selectedEnvironment || { id: 'local', name: 'Local Environment' }}
-                        task={{ id: activeChat.id, name: activeChat.title }}
-                        showEnvironment={showEnvironmentInTaskPopover}
-                      />
-                    </div>
-                  </PopoverContent>
-                </Popover>
+                <div className="flex items-center gap-1">
+                  {/* Task Tabs - Show when showTaskTabs is true */}
+                 
+                  
+                  {/* View Task Button - Only show for task chats */}
+                  <Drawer open={taskDrawerOpen} onOpenChange={setTaskDrawerOpen}>
+                    <DrawerTrigger asChild>
+                      <Button
+                        variant="subtle"
+                        size="sm"
+                        className="text-xs"
+                      >
+                        View Task
+                      </Button>
+                    </DrawerTrigger>
+                    <DrawerContent className="h-[80vh]">
+                      <div className="mx-auto w-full max-w-4xl h-full flex flex-col">
+                        <DrawerHeader className="border-b border-border pb-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <DrawerTitle className="text-left">Task Details</DrawerTitle>
+                              <DrawerDescription className="text-left">
+                                {activeChat?.title} - Detailed task information and controls
+                              </DrawerDescription>
+                            </div>
+                            <DrawerClose asChild>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <X className="h-4 w-4" />
+                                <span className="sr-only">Close</span>
+                              </Button>
+                            </DrawerClose>
+                          </div>
+                        </DrawerHeader>
+                        
+                        <div className="flex-1 overflow-hidden">
+                          <DockviewApiContext.Provider value={dockviewApi}>
+                            <TaskDetailPanel
+                              params={{ 
+                                task: { 
+                                  name: activeChat?.title || 'Untitled Task',
+                                  id: activeChat?.id 
+                                }, 
+                                environment: selectedEnvironment 
+                              }}
+                              api={{
+                                id: 'drawer-task-detail-panel',
+                                title: 'Task Details',
+                                group: { location: { type: 'drawer' } }
+                              }}
+                            />
+                          </DockviewApiContext.Provider>
+                        </div>
+                        
+                        <DrawerFooter className="border-t border-border pt-4">
+                          <div className="flex justify-end gap-2">
+                            <DrawerClose asChild>
+                              <Button variant="outline">Close</Button>
+                            </DrawerClose>
+                            <Button>Save Changes</Button>
+                          </div>
+                        </DrawerFooter>
+                      </div>
+                    </DrawerContent>
+                  </Drawer>
+                </div>
               )}
 
               {/* Info/Diff Buttons - Show for Remote */}
