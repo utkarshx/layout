@@ -61,12 +61,12 @@ const App = () => {
       console.log('Chat panel added successfully');
 
       // Add todo panel as a separate panel
-      api.addPanel({
-        id: 'todo_panel',
-        component: 'TodoPanel',
-        title: 'Todo Lists',
-        position: { referencePanel: 'chat_panel', direction: 'right' },
-      });
+      // api.addPanel({
+      //   id: 'todo_panel',
+      //   component: 'TodoPanel',
+      //   title: 'Todo Lists',
+      //   position: { referencePanel: 'chat_panel', direction: 'right' },
+      // });
       console.log('Todo panel added successfully');
     } catch (error) {
       console.error('Error adding panels:', error);

@@ -1,7 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { DockviewApiContext } from './App';
 import { Button } from './components/ui/button';
-import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs';
 import { Popover, PopoverContent, PopoverTrigger } from './components/ui/popover';
 import EnvironmentPanel from './EnvironmentPanel';
 import TaskPanel from './TaskPanel';
@@ -21,12 +20,10 @@ const LeftPanel = (props) => {
   // Zustand store state and actions
   const {
     environments,
-    activeTab,
     openPopovers,
     selectedTaskInEnv,
     taskSortBy,
     taskFilterBy,
-    setActiveTab,
     setPopoverOpen,
     setSelectedTaskInEnv,
     setTaskSortBy,
@@ -166,23 +163,51 @@ const LeftPanel = (props) => {
     <div className="p-2.5 text-white h-full overflow-y-auto">
      
 
-      {/* Header with Tabs and Controls */}
+      {/* Header with Controls */}
       <div className="flex items-center justify-between mb-4">
-        {/* Left-aligned Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-shrink-0">
-          <TabsList className="bg-gray-800 border-gray-700">
-            <TabsTrigger value="environments" className="data-[state=active]:bg-gray-700">
-              Environments
-            </TabsTrigger>
-            <TabsTrigger value="tasks" className="data-[state=active]:bg-gray-700">
-              Tasks
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        {/* Left-aligned Title */}
+        <h3 className="text-white font-medium text-sm">Tasks</h3>
 
-        {/* Right-side Controls (only show for tasks tab) */}
-        {activeTab === 'tasks' && (
-          <div className="flex items-center gap-2">
+{/* Right-side Controls */}
+        <div className="flex items-center gap-2">
+            {/* Environments Dropdown */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="bg-gray-800 border-gray-700 hover:bg-gray-700">
+                  Environments
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-48 bg-gray-900 border-gray-700">
+                <div className="space-y-1">
+                  {environments.map((env) => (
+                    <Popover
+                      key={env.id}
+                      open={openPopovers[`env_${env.id}`] || false}
+                      onOpenChange={(open) => setPopoverOpen(`env_${env.id}`, open)}
+                    >
+                      <PopoverTrigger asChild>
+                        <div
+                          className="cursor-pointer p-2 hover:bg-gray-700 rounded text-sm"
+                          onClick={() => setPopoverOpen(`env_${env.id}`, true)}
+                        >
+                          {env.name}
+                        </div>
+                      </PopoverTrigger>
+                      <PopoverContent 
+                        className="w-[800px] h-screen p-0 bg-gray-900 border-gray-700"
+                        side="left"
+                        align="center"
+                      >
+                        <div className="h-full">
+                          <SplitEnvironmentPanel environment={env} envId={env.id} />
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+
             {/* Sort Dropdown */}
             <Popover>
               <PopoverTrigger asChild>
@@ -251,39 +276,10 @@ const LeftPanel = (props) => {
               </PopoverContent>
             </Popover>
           </div>
-        )}
       </div>
 
-      {/* Tab Content */}
+      {/* Tasks Content */}
       <div className="space-y-2">
-        {activeTab === 'environments' && (
-          <div>
-            {environments.map((env) => (
-              <Popover
-                key={env.id}
-                open={openPopovers[`env_${env.id}`] || false}
-                onOpenChange={(open) => setPopoverOpen(`env_${env.id}`, open)}
-              >
-                <PopoverTrigger asChild>
-                  <div className="p-2 px-3 my-1 bg-gray-800 rounded cursor-pointer border border-gray-700 hover:bg-gray-700 transition-colors">
-                    {env.name}
-                  </div>
-                </PopoverTrigger>
-                <PopoverContent 
-                  className="w-[800px] h-screen p-0 bg-gray-900 border-gray-700"
-                  side="left"
-                  align="center"
-                >
-                  <div className="h-full">
-                    <SplitEnvironmentPanel environment={env} envId={env.id} />
-                  </div>
-                </PopoverContent>
-              </Popover>
-            ))}
-          </div>
-        )}
-
-        {activeTab === 'tasks' && (
           <div>
             {getFilteredAndSortedTasks().map((task) => {
               const taskEnvironment = getEnvironmentById(task.environmentId);
@@ -351,8 +347,6 @@ const LeftPanel = (props) => {
               );
             })}
           </div>
-        )}
-
       </div>
     </div>
   );
