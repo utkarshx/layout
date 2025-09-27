@@ -4,6 +4,7 @@ import 'dockview-core/dist/styles/dockview.css';
 import './App.css';
 import LeftPanel from './LeftPanel';
 import EnvironmentPanel from './EnvironmentPanel';
+import EnvironmentLeftPanel from './EnvironmentLeftPanel';
 import TaskPanel from './TaskPanel';
 import TaskDetailPanel from './TaskDetailPanel';
 import TaskChatPanel from './TaskChatPanel';
@@ -26,6 +27,7 @@ const App = () => {
 
   const components = useMemo(() => ({
     LeftPanel: (props) => <LeftPanel {...props} dockviewApi={dockviewApi} />,
+    EnvironmentLeftPanel: (props) => <EnvironmentLeftPanel {...props} dockviewApi={dockviewApi} />,
     EnvironmentPanel: (props) => <EnvironmentPanel {...props} dockviewApi={dockviewApi} />,
     TaskPanel: (props) => <TaskPanel {...props} />,
     TaskDetailPanel: (props) => <TaskDetailPanel {...props} />,
