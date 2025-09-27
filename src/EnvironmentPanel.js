@@ -103,6 +103,7 @@ const EnvironmentPanel = (props) => {
 
   // State for Add Tool dropdown
   const [isAddToolOpen, setIsAddToolOpen] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
 
   // Refs and effects for dropdown
   const dropdownRef = useRef(null);
@@ -121,6 +122,12 @@ const EnvironmentPanel = (props) => {
     }
   }, [isAddToolOpen]);
 
+  // Debug dropdown state changes
+  useEffect(() => {
+    console.log('Dropdown state changed:', isAddToolOpen);
+    console.log('Dropdown position:', dropdownPosition);
+  }, [isAddToolOpen, dropdownPosition]);
+
   // Left Header Actions Component for Dockview - matches group height
   const LeftHeaderActionsComponent = useCallback((props) => (
     <div className="flex items-center h-full relative" ref={dropdownRef}>
@@ -136,49 +143,26 @@ const EnvironmentPanel = (props) => {
           e.preventDefault();
           e.stopPropagation();
           console.log('Add Tool button clicked, current state:', isAddToolOpen);
+          
+          if (!isAddToolOpen && dropdownRef.current) {
+            const rect = dropdownRef.current.getBoundingClientRect();
+            console.log('Button rect:', rect);
+            setDropdownPosition({
+              top: rect.bottom + 2,
+              left: rect.left
+            });
+            console.log('Setting dropdown position to:', { top: rect.bottom + 2, left: rect.left });
+          }
+          
           setIsAddToolOpen(!isAddToolOpen);
+          console.log('Setting isAddToolOpen to:', !isAddToolOpen);
         }}
       >
         <Plus className="h-4 w-4" />
         <span>Add Tool</span>
       </button>
       
-      {isAddToolOpen && (
-        <div 
-          className="absolute top-full left-0 w-56 p-2 bg-gray-800 border border-gray-600 rounded shadow-lg"
-          style={{ zIndex: 9999 }}
-        >
-          <div className="space-y-1">
-            <h5 className="text-sm font-medium text-white mb-2">Add Panel</h5>
-            {availablePanels
-              .filter(panel => !activePanels.has(panel.id))
-              .map((panel) => {
-                const IconComponent = panel.icon;
-                return (
-                  <button
-                    key={panel.id}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      console.log('Panel selected:', panel.title);
-                      addPanel(panel);
-                      setIsAddToolOpen(false);
-                    }}
-                    className="w-full flex items-center gap-3 p-2 text-left text-sm text-white hover:bg-gray-700 rounded transition-colors"
-                  >
-                    <IconComponent className="h-4 w-4 text-gray-400" />
-                    <span>{panel.title}</span>
-                  </button>
-                );
-              })}
-            {availablePanels.filter(panel => !activePanels.has(panel.id)).length === 0 && (
-              <div className="text-sm text-gray-400 p-2 text-center">
-                All panels are already active
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      
     </div>
   ), [availablePanels, activePanels, addPanel, isAddToolOpen, setIsAddToolOpen]);
 
@@ -385,6 +369,49 @@ const EnvironmentPanel = (props) => {
           leftHeaderActionsComponent={LeftHeaderActionsComponent}
         />
       </div>
+      
+      {/* Render dropdown at body level to avoid dockview clipping */}
+      {isAddToolOpen && (
+        <div 
+          className="w-56 p-2 bg-gray-800 border border-gray-600 rounded shadow-lg"
+          style={{ 
+            zIndex: 99999,
+            position: 'fixed',
+            top: dropdownPosition.top,
+            left: dropdownPosition.left
+          }}
+        >
+          <div className="space-y-1">
+            <h5 className="text-sm font-medium text-white mb-2">Add Panel</h5>
+            {availablePanels
+              .filter(panel => !activePanels.has(panel.id))
+              .map((panel) => {
+                const IconComponent = panel.icon;
+                return (
+                  <button
+                    key={panel.id}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      console.log('Panel selected:', panel.title);
+                      addPanel(panel);
+                      setIsAddToolOpen(false);
+                    }}
+                    className="w-full flex items-center gap-3 p-2 text-left text-sm text-white hover:bg-gray-700 rounded transition-colors"
+                  >
+                    <IconComponent className="h-4 w-4 text-gray-400" />
+                    <span>{panel.title}</span>
+                  </button>
+                );
+              })}
+            {availablePanels.filter(panel => !activePanels.has(panel.id)).length === 0 && (
+              <div className="text-sm text-gray-400 p-2 text-center">
+                All panels are already active
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
