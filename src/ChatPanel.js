@@ -2,8 +2,10 @@ import React, { useState, useRef, useEffect, useContext } from 'react';
 import { DockviewApiContext } from './App';
 import { Button } from './components/ui/button';
 import { Popover, PopoverTrigger, PopoverContent } from './components/ui/popover';
+import { Info, GitCompare, Menu, PanelLeft } from 'lucide-react';
 import TaskPanel from './TaskPanel';
 import EnvironmentPanel from './EnvironmentPanel';
+import useAppStore from './store/useAppStore';
 
 const ChatPanel = (props) => {
   const dockviewApi = useContext(DockviewApiContext);
@@ -22,12 +24,17 @@ const ChatPanel = (props) => {
   const [activeChatId, setActiveChatId] = useState('chat1');
   const [inputMessage, setInputMessage] = useState('');
   const [taskPopoverOpen, setTaskPopoverOpen] = useState(false);
-  const [showEnvironmentInTaskPopover, setShowEnvironmentInTaskPopover] = useState(false);
+  const [showEnvironmentInTaskPopover] = useState(false);
   const [isRemoteTask, setIsRemoteTask] = useState(false);
-  const [selectedAction, setSelectedAction] = useState('Act');
   const [sendMode, setSendMode] = useState('interactive');
   const [envPopoverOpen, setEnvPopoverOpen] = useState(false);
   const [envViewMode, setEnvViewMode] = useState('info');
+  const [selectedEnvironment, setSelectedEnvironment] = useState(null);
+  const [chatListOpen, setChatListOpen] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(false);
+  
+  // Get environments from Zustand store
+  const { environments } = useAppStore();
   const messagesEndRef = useRef(null);
 
   const activeChat = chats.find(chat => chat.id === activeChatId);
@@ -50,11 +57,18 @@ const ChatPanel = (props) => {
       timestamp: new Date(),
     };
 
-    // Update the active chat with new message
+    // Determine chat type if this is the first message
+    const chatType = activeChat.type || (sendMode === 'schedule' ? 'task' : 'chat');
+
+    // Update the active chat with new message and type
     setChats(prevChats =>
       prevChats.map(chat =>
         chat.id === activeChatId
-          ? { ...chat, messages: [...chat.messages, newMessage] }
+          ? { 
+              ...chat, 
+              messages: [...chat.messages, newMessage],
+              type: chatType // Set type based on send mode if not already set
+            }
           : chat
       )
     );
@@ -84,40 +98,14 @@ const ChatPanel = (props) => {
     const newChat = {
       id: newChatId,
       title: `Chat ${chats.length + 1}`,
-      type: 'chat',
-      messages: [
-        {
-          id: 1,
-          text: 'New chat created. How can I help you today?',
-          sender: 'system',
-          timestamp: new Date()
-        }
-      ]
+      type: undefined, // Type will be determined after first message
+      messages: [] // Start with empty messages
     };
 
     setChats([...chats, newChat]);
     setActiveChatId(newChatId);
   };
 
-  const addNewTask = () => {
-    const newTaskId = `task${chats.length + 1}`;
-    const newTask = {
-      id: newTaskId,
-      title: `Task ${chats.length + 1}`,
-      type: 'task',
-      messages: [
-        {
-          id: 1,
-          text: 'New task created. What would you like to accomplish?',
-          sender: 'system',
-          timestamp: new Date()
-        }
-      ]
-    };
-
-    setChats([...chats, newTask]);
-    setActiveChatId(newTaskId);
-  };
 
   const switchChat = (chatId) => {
     setActiveChatId(chatId);
@@ -212,140 +200,266 @@ const ChatPanel = (props) => {
   };
 
   return (
-    <div className="p-5 text-white h-[80%] overflow-hidden flex flex-col">
+    <div className="p-5 text-foreground bg-background h-[80%] overflow-hidden flex">
+      {/* Left Sidebar - Show when sidebar is enabled */}
+      {showSidebar && (
+        <div className="w-64 border-r border-border pr-4 mr-4 flex-shrink-0">
+          <div className="mb-4">
+            <h3 className="text-sm font-medium text-muted-foreground mb-2">Chats</h3>
+            <Button
+              onClick={addNewChat}
+              variant="outline"
+              size="sm"
+              className="w-full mb-3"
+            >
+              + New Chat
+            </Button>
+          </div>
+          <div className="space-y-1 overflow-y-auto max-h-[calc(100%-120px)]">
+            {chats.map((chat) => (
+              <Button
+                key={chat.id}
+                onClick={() => switchChat(chat.id)}
+                variant={chat.id === activeChatId ? "active" : "ghost"}
+                size="sm"
+                className="w-full justify-start h-auto p-2"
+              >
+                <div className="text-left">
+                  <div className="font-medium truncate">{chat.title}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {chat.messages.length} messages • {chat.type || 'chat'}
+                  </div>
+                </div>
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col">
 
       {/* Chat Tabs */}
-      <div className="flex items-center mb-3.75 border-b border-gray-700 pb-2.5">
-        <div className="flex gap-0.5 flex-1">
+      <div className="flex items-center mb-3.75 border-b border-border pb-2.5">
+        {/* Chat Control Buttons */}
+        <div className="flex items-center gap-1 mr-3">
+          {/* Chat List Popover Button */}
+          <Popover open={chatListOpen} onOpenChange={setChatListOpen}>
+            <PopoverTrigger asChild>
+              <button className="p-1.5 bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 hover:text-white border border-gray-600/50 hover:border-gray-500 rounded cursor-pointer transition-colors">
+                <Menu className="w-3.5 h-3.5" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64 p-2 bg-gray-900 border-gray-700" side="bottom" align="start">
+              <div className="space-y-1">
+                <div className="text-xs font-medium text-gray-400 mb-2">All Chats</div>
+                {chats.map((chat) => (
+                  <Button
+                    key={chat.id}
+                    onClick={() => {
+                      switchChat(chat.id);
+                      setChatListOpen(false);
+                    }}
+                    variant={chat.id === activeChatId ? "active" : "ghost"}
+                    size="sm"
+                    className="w-full justify-start h-auto p-2"
+                  >
+                    <div className="text-left">
+                      <div className="font-medium">{chat.title}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {chat.messages.length} messages • {chat.type || 'chat'}
+                      </div>
+                    </div>
+                  </Button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Sidebar Toggle Button */}
+          <button 
+            onClick={() => setShowSidebar(!showSidebar)}
+            className={`p-1.5 border border-gray-600/50 hover:border-gray-500 rounded cursor-pointer transition-colors ${
+              showSidebar 
+                ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                : 'bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 hover:text-white'
+            }`}
+          >
+            <PanelLeft className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        <div className={`flex gap-0.5 flex-1 ${showSidebar ? 'hidden' : ''}`}>
           {chats.map((chat) => (
             <Button
               key={chat.id}
               onClick={() => switchChat(chat.id)}
-              className={`p-2 px-4 text-sm border border-gray-700 rounded-t cursor-pointer transition-colors ${chat.id === activeChatId
-                  ? 'bg-blue-600 font-bold'
-                  : 'bg-gray-800 hover:bg-gray-700'
-                }`}
+              variant={chat.id === activeChatId ? "active" : "subtle"}
+              size="sm"
+              className="rounded-t-md rounded-b-none"
             >
               {chat.title}
             </Button>
           ))}
+          {/* Add New Chat Button */}
+          <Button
+            onClick={addNewChat}
+            variant="outline"
+            size="sm"
+            className="rounded-t-md rounded-b-none"
+          >
+            + New Chat
+          </Button>
         </div>
 
-        {/* Info/Diff Buttons - Show when Remote is checked */}
-        {isRemoteTask && (
-          <>
-            <Popover open={envPopoverOpen && envViewMode === 'info'} onOpenChange={(open) => {
-              if (open) setEnvViewMode('info');
-              setEnvPopoverOpen(open);
-            }}>
-              <PopoverTrigger asChild>
-                <button className="p-2 px-3 bg-blue-600 hover:bg-blue-700 text-white border border-gray-700 rounded cursor-pointer text-sm font-bold transition-colors">
-                  Info
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[800px] h-screen p-0 bg-gray-900 border-gray-700" side="left" align="center">
-                <div className="h-full">
-                  <DockviewApiContext.Provider value={dockviewApi}>
-                    <EnvironmentPanel
-                      params={{ environment: { id: 'env1', name: 'Development Environment' } }}
-                      api={{
-                        id: 'popover-env-info-panel',
-                        title: 'Environment Info',
-                        group: { location: { type: 'popover' } },
-                        onTaskSelect: () => {}
-                      }}
-                    />
-                  </DockviewApiContext.Provider>
-                </div>
-              </PopoverContent>
-            </Popover>
-            
-            <Popover open={envPopoverOpen && envViewMode === 'diff'} onOpenChange={(open) => {
-              if (open) setEnvViewMode('diff');
-              setEnvPopoverOpen(open);
-            }}>
-              <PopoverTrigger asChild>
-                <button className="p-2 px-3 bg-purple-600 hover:bg-purple-700 text-white border border-gray-700 rounded cursor-pointer text-sm font-bold transition-colors">
-                  Diff
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[800px] h-screen p-0 bg-gray-900 border-gray-700" side="left" align="center">
-                <div className="h-full">
-                  <DockviewApiContext.Provider value={dockviewApi}>
-                    <EnvironmentPanel
-                      params={{ environment: { id: 'env1', name: 'Development Environment' } }}
-                      api={{
-                        id: 'popover-env-diff-panel',
-                        title: 'Environment Diff',
-                        group: { location: { type: 'popover' } },
-                        onTaskSelect: () => {}
-                      }}
-                    />
-                  </DockviewApiContext.Provider>
-                </div>
-              </PopoverContent>
-            </Popover>
-          </>
-        )}
       </div>
 
-      {/* Task Info Strip - Show for task type OR when schedule mode is selected */}
-      {(activeChat?.type === 'task' || sendMode === 'schedule') && (
-        <div className="mb-3 p-2 bg-blue-900/50 border border-blue-700 rounded-lg flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-blue-300 text-sm font-medium">
-              {sendMode === 'schedule' ? '⏰ Scheduled Task:' : '📋 Task:'}
-            </span>
-            <span className="text-white text-sm">
-              {sendMode === 'schedule' ? 'Schedule Configuration' : activeChat.title}
-            </span>
+      {/* Combined Context Strip - Show when chat has messages */}
+      {activeChat?.messages.length > 0 && (
+        <div className="mb-2 p-2 bg-muted/50 border border-border rounded-md">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {/* Mode and Type Display */}
+              <span className="text-muted-foreground text-xs font-medium">
+                {isRemoteTask ? '🌐' : '💻'} {isRemoteTask ? 'Remote' : 'Local'} {activeChat?.type === 'task' || sendMode === 'schedule' ? 'Task' : 'Chat'}:
+              </span>
+              
+              {/* Environment Name (for Remote) or Chat Title */}
+              <span className="text-foreground text-xs font-medium">
+                {isRemoteTask && selectedEnvironment ? selectedEnvironment.name : activeChat.title}
+              </span>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-1">
+              {/* View Task Details Button - Show for tasks */}
+              {(activeChat?.type === 'task' || sendMode === 'schedule') && (
+                <Popover open={taskPopoverOpen} onOpenChange={setTaskPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="subtle"
+                      size="sm"
+                      className="text-xs"
+                    >
+                      View Task
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    className={showEnvironmentInTaskPopover ? "w-[1600px] h-screen p-0 bg-gray-900 border-gray-700" : "w-[800px] h-screen p-0 bg-gray-900 border-gray-700"}
+                    side="left"
+                    align="center"
+                  >
+                    <div className="h-full">
+                      <SplitEnvironmentPanel
+                        environment={selectedEnvironment || { id: 'local', name: 'Local Environment' }}
+                        task={{ id: activeChat.id, name: activeChat.title }}
+                        showEnvironment={showEnvironmentInTaskPopover}
+                      />
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              )}
+
+              {/* Info/Diff Buttons - Show for Remote */}
+              {isRemoteTask && selectedEnvironment && (
+                <>
+                  <Popover open={envPopoverOpen && envViewMode === 'info'} onOpenChange={(open) => {
+                    if (open) setEnvViewMode('info');
+                    setEnvPopoverOpen(open);
+                  }}>
+                    <PopoverTrigger asChild>
+                      <button className="p-1.5 bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 hover:text-white border border-gray-600/50 hover:border-gray-500 rounded cursor-pointer transition-colors">
+                        <Info className="w-3.5 h-3.5" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[800px] h-screen p-0 bg-gray-900 border-gray-700" side="left" align="center">
+                      <div className="h-full">
+                        <DockviewApiContext.Provider value={dockviewApi}>
+                          <EnvironmentPanel
+                            params={{ environment: selectedEnvironment }}
+                            api={{
+                              id: 'popover-env-info-panel',
+                              title: 'Environment Info',
+                              group: { location: { type: 'popover' } },
+                              onTaskSelect: () => {}
+                            }}
+                          />
+                        </DockviewApiContext.Provider>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                  
+                  <Popover open={envPopoverOpen && envViewMode === 'diff'} onOpenChange={(open) => {
+                    if (open) setEnvViewMode('diff');
+                    setEnvPopoverOpen(open);
+                  }}>
+                    <PopoverTrigger asChild>
+                      <button className="p-1.5 bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 hover:text-white border border-gray-600/50 hover:border-gray-500 rounded cursor-pointer transition-colors">
+                        <GitCompare className="w-3.5 h-3.5" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[800px] h-screen p-0 bg-gray-900 border-gray-700" side="left" align="center">
+                      <div className="h-full">
+                        <DockviewApiContext.Provider value={dockviewApi}>
+                          <EnvironmentPanel
+                            params={{ environment: selectedEnvironment }}
+                            api={{
+                              id: 'popover-env-diff-panel',
+                              title: 'Environment Diff',
+                              group: { location: { type: 'popover' } },
+                              onTaskSelect: () => {}
+                            }}
+                          />
+                        </DockviewApiContext.Provider>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </>
+              )}
+            </div>
           </div>
-          <Popover open={taskPopoverOpen} onOpenChange={setTaskPopoverOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                className="text-xs px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white border border-blue-500 rounded cursor-pointer transition-colors"
-              >
-                View Task Details
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent
-              className={showEnvironmentInTaskPopover ? "w-[1600px] h-screen p-0 bg-gray-900 border-gray-700" : "w-[800px] h-screen p-0 bg-gray-900 border-gray-700"}
-              side="left"
-              align="center"
-            >
-              <div className="h-full">
-                <SplitEnvironmentPanel
-                  environment={{ id: 'env1', name: 'Development Environment' }}
-                  task={{ id: activeChat.id, name: activeChat.title }}
-                  showEnvironment={showEnvironmentInTaskPopover}
-                />
-              </div>
-            </PopoverContent>
-          </Popover>
         </div>
       )}
 
-      {/* Chat Messages Container */}
-      <div className="flex-1 overflow-y-auto bg-gray-900 rounded-lg p-3.75 mb-3.75 border border-gray-800">
-        {activeChat?.messages.map((message) => (
-          <div
-            key={message.id}
-            className="mb-3 flex flex-col"
-            style={{ alignItems: message.sender === 'user' ? 'flex-end' : 'flex-start' }}
-          >
+      {/* Chat Messages Container or Empty State */}
+      {activeChat?.messages.length > 0 ? (
+        <div className="flex-1 overflow-y-auto bg-card rounded-lg p-3.75 mb-3.75 border border-border">
+          {activeChat?.messages.map((message) => (
             <div
-              className="max-w-[70%] p-2 px-3 rounded-xl text-white break-words"
-              style={{ backgroundColor: message.sender === 'user' ? '#007acc' : '#333' }}
+              key={message.id}
+              className="mb-3 flex flex-col"
+              style={{ alignItems: message.sender === 'user' ? 'flex-end' : 'flex-start' }}
             >
-              {message.text}
+              <div
+                className="max-w-[70%] p-2 px-3 rounded-xl text-white break-words"
+                style={{ backgroundColor: message.sender === 'user' ? '#007acc' : '#333' }}
+              >
+                {message.text}
+              </div>
+              <div className="text-xs text-gray-500 mt-1">
+                {formatTime(message.timestamp)}
+              </div>
             </div>
-            <div className="text-xs text-gray-500 mt-1">
-              {formatTime(message.timestamp)}
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
+      ) : (
+        // Empty State - Show only for new chats
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-6xl mb-4">💬</div>
+            <h3 className="text-xl font-semibold text-gray-300 mb-2">Start a New Conversation</h3>
+            <p className="text-gray-500 mb-4">
+              Type your message below to begin. Choose your mode and settings before sending.
+            </p>
+            <div className="text-sm text-gray-600">
+              <p>• Select <span className="text-blue-400">Interactive</span> for real-time chat</p>
+              <p>• Select <span className="text-purple-400">Schedule</span> for task planning</p>
+              <p>• Toggle <span className="text-green-400">Remote</span> for environment access</p>
             </div>
           </div>
-        ))}
-        <div ref={messagesEndRef} />
-      </div>
+        </div>
+      )}
 
       {/* Input Area - Modern Interface */}
       <div className=" p-4">
@@ -356,7 +470,7 @@ const ChatPanel = (props) => {
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Write your message here..."
-            className="w-full p-3 pr-24 bg-gray-900 border border-gray-600 rounded-xl text-white resize-none text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full p-3 pr-24 bg-background border border-input rounded-xl text-foreground resize-none text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
             rows={3}
           />
           
@@ -369,7 +483,8 @@ const ChatPanel = (props) => {
             <Button
               onClick={handleSendMessage}
               disabled={!inputMessage.trim()}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg cursor-pointer text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              variant="default"
+              size="sm"
             >
               Send
             </Button>
@@ -386,46 +501,72 @@ const ChatPanel = (props) => {
                 type="checkbox"
                 id="remote-task"
                 checked={isRemoteTask}
-                onChange={(e) => setIsRemoteTask(e.target.checked)}
+                onChange={(e) => {
+                  setIsRemoteTask(e.target.checked);
+                  if (!e.target.checked) {
+                    setSelectedEnvironment(null);
+                  }
+                }}
                 className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
               />
               <label htmlFor="remote-task" className="text-gray-300 text-sm font-medium cursor-pointer">
                 Remote
               </label>
             </div>
+
+            {/* Environment Dropdown - Show when Remote is checked */}
+            {isRemoteTask && (
+              <div className="flex items-center gap-2">
+                <span className="text-gray-400 text-sm">Environment:</span>
+                <select
+                  value={selectedEnvironment?.id || ''}
+                  onChange={(e) => {
+                    const env = environments.find(env => env.id === e.target.value);
+                    setSelectedEnvironment(env || null);
+                  }}
+                  className="px-2 py-1 bg-background border border-input rounded text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                >
+                  <option value="">Select Environment</option>
+                  {environments.map((env) => (
+                    <option key={env.id} value={env.id}>
+                      {env.name}
+                    </option>
+                  ))}
+                </select>
+                
+                
+              </div>
+            )}
           </div>
 
           {/* Mode Indicator */}
           <div className="text-xs text-gray-400">
-          <div className="flex bg-gray-700 rounded-lg p-1">
-              <button
+          <div className="flex bg-muted rounded-lg p-1">
+              <Button
                 onClick={() => setSendMode('interactive')}
-                className={`px-2 py-1 text-xs rounded-md transition-colors ${
-                  sendMode === 'interactive' 
-                    ? 'bg-blue-600 text-white' 
-                    : 'text-gray-300 hover:text-white'
-                }`}
+                variant={sendMode === 'interactive' ? 'active' : 'ghost'}
+                size="sm"
+                className="h-7 px-2 text-xs"
               >
                 Interactive
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => setSendMode('schedule')}
-                className={`px-2 py-1 text-xs rounded-md transition-colors ${
-                  sendMode === 'schedule' 
-                    ? 'bg-blue-600 text-white' 
-                    : 'text-gray-300 hover:text-white'
-                }`}
+                variant={sendMode === 'schedule' ? 'active' : 'ghost'}
+                size="sm"
+                className="h-7 px-2 text-xs"
               >
                 Schedule
-              </button>
+              </Button>
             </div>
           </div>
         </div>
       </div>
 
       {/* Chat Info */}
-      <div className="mt-2.5 text-xs text-gray-500 text-center">
+      <div className="mt-2.5 text-xs text-muted-foreground text-center">
         Chat Panel • Press Enter to send • Shift+Enter for new line
+      </div>
       </div>
     </div>
   );

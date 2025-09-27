@@ -1,13 +1,12 @@
-import React, { useState, useRef, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useMemo } from 'react';
+import { DockviewReact } from 'dockview-react';
 import { DockviewApiContext } from './App';
 import { Button } from './components/ui/button';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from './components/ui/tabs';
-import { Card, CardHeader, CardTitle, CardContent } from './components/ui/card';
-import { Input } from './components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from './components/ui/popover';
 import EnvironmentPanel from './EnvironmentPanel';
+import TaskDetailPanel from './TaskDetailPanel';
+import TaskChatPanel from './TaskChatPanel';
 import {
- 
   SquareArrowOutUpRight
 } from 'lucide-react';
 
@@ -19,18 +18,49 @@ const TaskPanel = (props) => {
   const { environment, task } = params || {};
   const dockviewApi = useContext(DockviewApiContext);
   
-  // Tab state
-  const [activeTab, setActiveTab] = useState('detail');
   
   // Floating environment panel state
   const [activeEnvironmentPanel, setActiveEnvironmentPanel] = useState(null);
   
-  // Popover state for environment panel
-  const [isEnvironmentPopoverOpen, setIsEnvironmentPopoverOpen] = useState(false);
   
   // Track if environment is selected
   const [isEnvironmentSelected, setIsEnvironmentSelected] = useState(!!environment);
   
+  // Nested dockview components
+  const nestedComponents = useMemo(() => ({
+    TaskDetailPanel: (props) => <TaskDetailPanel {...props} />,
+    TaskChatPanel: (props) => <TaskChatPanel {...props} />,
+  }), []);
+
+  // Nested dockview setup
+  const onNestedReady = (event) => {
+    const { api: nestedApi } = event;
+    console.log('Nested Dockview API ready:', nestedApi);
+
+    try {
+      // Add task detail panel
+      nestedApi.addPanel({
+        id: 'task_detail',
+        component: 'TaskDetailPanel',
+        title: 'Task Detail',
+        params: { task, environment },
+      });
+
+      // Add task chat panel
+      nestedApi.addPanel({
+        id: 'task_chat',
+        component: 'TaskChatPanel',
+        title: 'Chat',
+        params: { task },
+        position: { referencePanel: 'task_detail', direction: 'right' },
+      });
+
+      console.log('Nested panels added successfully');
+    } catch (error) {
+      console.error('Error adding nested panels:', error);
+    }
+  };
+
   // Update environment selection state when environment prop changes
   useEffect(() => {
     setIsEnvironmentSelected(!!environment);
@@ -48,22 +78,6 @@ const TaskPanel = (props) => {
   
   // Check if this panel is opened from a popover
   const isOpenedFromPopover = api?.group?.location?.type === 'popover';
-  
-  // Chat state for task-specific chat
-  const [messages, setMessages] = useState([
-    { id: 1, text: `Welcome to the task chat for: ${task?.name || 'this task'}`, sender: 'system', timestamp: new Date() },
-    { id: 2, text: 'You can discuss task-related details here.', sender: 'system', timestamp: new Date() },
-  ]);
-  const [inputMessage, setInputMessage] = useState('');
-  const messagesEndRef = useRef(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
 
   // Add click outside to close functionality for environment panel
   useEffect(() => {
@@ -101,41 +115,6 @@ const TaskPanel = (props) => {
     };
   }, [activeEnvironmentPanel, dockviewApi]);
 
-  const handleSendMessage = () => {
-    if (inputMessage.trim() === '') return;
-
-    const newMessage = {
-      id: messages.length + 1,
-      text: inputMessage,
-      sender: 'user',
-      timestamp: new Date(),
-    };
-
-    setMessages([...messages, newMessage]);
-    setInputMessage('');
-
-    // Simulate a response after a short delay
-    setTimeout(() => {
-      const responseMessage = {
-        id: messages.length + 2,
-        text: 'Message received! This is a task-specific response.',
-        sender: 'system',
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, responseMessage]);
-    }, 1000);
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
-
-  const formatTime = (date) => {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
 
   const openEnvironmentPanel = (environment) => {
     if (onEnvSelect) {
@@ -193,13 +172,6 @@ const TaskPanel = (props) => {
     // }
   };
 
-  const openEnvironmentPanelInPopOver = (environment) => {
-    if (onEnvSelect) {
-      onEnvSelect(environment);
-      setIsEnvironmentSelected(true);
-    }
-    // setIsEnvironmentPopoverOpen(true);
-  };
 
   const openTaskInNewPanel = (task) => {
     console.log('openTaskInNewPanel called:', task);
@@ -264,7 +236,7 @@ const TaskPanel = (props) => {
             </Button>
           )}
           {!isEnvironmentSelected && task && (
-            <Popover open={isEnvironmentPopoverOpen} >
+            <Popover>
               <PopoverTrigger asChild>
                 <Button
                 onClick={() => {
@@ -306,110 +278,13 @@ const TaskPanel = (props) => {
           )}
         </div>
       
-      {environment && (
-        <div className="bg-gray-900 p-2.5 rounded mb-5 border border-gray-800">
-          <strong>Environment:</strong> {environment.name}
-        </div>
-      )}
-      
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-5">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="detail" className="data-[state=active]:bg-blue-600">Task Detail</TabsTrigger>
-          <TabsTrigger value="chat" className="data-[state=active]:bg-blue-600">Chat</TabsTrigger>
-        </TabsList>
-      </Tabs>
-      
-      {/* Tab Content */}
-      <div className="flex-1 overflow-y-auto">
-        {activeTab === 'detail' && (
-          <div>
-            <div className="mb-5">
-              <h3 className="mb-2.5">Task Details</h3>
-              <p>This panel contains detailed information and controls for the selected task.</p>
-              {task && (
-                <div className="mt-3.75">
-                  <p><strong>Task Name:</strong> {task.name}</p>
-                  <p><strong>Status:</strong> <span className="text-orange-500">In Progress</span></p>
-                  <p><strong>Priority:</strong> High</p>
-                  <p><strong>Assigned to:</strong> John Doe</p>
-                  <p><strong>Created:</strong> 2024-01-15</p>
-                  <p><strong>Due Date:</strong> 2024-01-20</p>
-                </div>
-              )}
-            </div>
-            
-            <div className="mb-5">
-              <h4 className="mb-2">Actions</h4>
-              <Button className="m-1 bg-blue-600 hover:bg-blue-700 text-white rounded cursor-pointer">
-                Execute Task
-              </Button>
-              <Button className="m-1 bg-gray-600 hover:bg-gray-700 text-white rounded cursor-pointer">
-                View Logs
-              </Button>
-            </div>
-            
-            <div>
-              <h4 className="mb-2">Status</h4>
-              <div className="bg-gray-800 p-2.5 rounded border border-gray-700">
-                <div className="text-green-500">● Ready</div>
-                <div className="text-xs text-gray-400 mt-1">
-                  Last executed: Never
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        {activeTab === 'chat' && (
-          <div className="flex flex-col h-full">
-            {/* Chat Messages Container */}
-            <div className="flex-1 overflow-y-auto bg-gray-900 rounded-lg p-3.75 mb-3.75 border border-gray-800">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className="mb-3 flex flex-col items-end"
-                  style={{ alignItems: message.sender === 'user' ? 'flex-end' : 'flex-start' }}
-                >
-                  <div
-                    className="max-w-[70%] p-2 px-3 rounded-xl text-white break-words"
-                    style={{ backgroundColor: message.sender === 'user' ? '#007acc' : '#333' }}
-                  >
-                    {message.text}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    {formatTime(message.timestamp)}
-                  </div>
-                </div>
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
-            
-            {/* Input Area */}
-            <div className="flex gap-2.5">
-              <textarea
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Type your message..."
-                className="flex-1 p-2.5 bg-gray-800 border border-gray-700 rounded text-white resize-none text-sm font-inherit"
-                rows={2}
-              />
-              <Button
-                onClick={handleSendMessage}
-                disabled={!inputMessage.trim()}
-                className="p-2.5 px-5 bg-blue-600 hover:bg-blue-700 text-white rounded cursor-pointer text-sm font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Send
-              </Button>
-            </div>
-            
-            {/* Chat Info */}
-            <div className="mt-2.5 text-xs text-gray-500 text-center">
-              Task Chat • Press Enter to send • Shift+Enter for new line
-            </div>
-          </div>
-        )}
+      {/* Nested Dockview for Task Detail and Chat */}
+      <div className="flex-1 overflow-hidden">
+        <DockviewReact
+          components={nestedComponents}
+          onReady={onNestedReady}
+          className="dockview-theme-dark"
+        />
       </div>
       </div>
     </div>

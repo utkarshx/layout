@@ -1,12 +1,11 @@
-import React, { useState, useRef, useEffect, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import { DockviewApiContext } from './App';
 import { Button } from './components/ui/button';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from './components/ui/tabs';
-import { Card, CardHeader, CardTitle, CardContent } from './components/ui/card';
-import { Input } from './components/ui/input';
+import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs';
 import { Popover, PopoverContent, PopoverTrigger } from './components/ui/popover';
 import EnvironmentPanel from './EnvironmentPanel';
 import TaskPanel from './TaskPanel';
+import useAppStore from './store/useAppStore';
 
 const LeftPanel = (props) => {
   const { api } = props;
@@ -19,47 +18,27 @@ const LeftPanel = (props) => {
   console.log('panel group:', api?.group);
   console.log('panel group keys:', Object.keys(api?.group || {}));
 
-  const [expandedSections, setExpandedSections] = useState({
-    environments: true,
-    tasks: true
-  });
-
-  // Popover state management
-  const [openPopovers, setOpenPopovers] = useState({});
-  
-  // Selected task for split view in environment popover
-  const [selectedTaskInEnv, setSelectedTaskInEnv] = useState({});
-
-  const environments = [
-    { id: 'env1', name: 'Local' },
-    { id: 'env2', name: 'Docker 02 - (provider-docker)'  },
-    { id: 'env3', name: 'Docker 0212 - (provider-docker)' },
-  ];
-
-  const tasks = [
-    { id: 'task1', name: 'Setup Database' },
-    { id: 'task2', name: 'Configure API' },
-    { id: 'task3', name: 'Deploy Application' },
-  ];
-
-  const toggleSection = (section) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
-  };
-
-  // Popover management functions
-  const setPopoverOpen = (id, isOpen) => {
-    setOpenPopovers(prev => ({
-      ...prev,
-      [id]: isOpen
-    }));
-  };
+  // Zustand store state and actions
+  const {
+    environments,
+    activeTab,
+    openPopovers,
+    selectedTaskInEnv,
+    taskSortBy,
+    taskFilterBy,
+    setActiveTab,
+    setPopoverOpen,
+    setSelectedTaskInEnv,
+    setTaskSortBy,
+    setTaskFilterBy,
+    getEnvironmentById,
+    getFilteredAndSortedTasks,
+  } = useAppStore();
 
   // Split Environment Panel Component
   const SplitEnvironmentPanel = ({ environment, envId }) => {
-    const [selectedTask, setSelectedTask] = useState(null);
+    const selectedTask = selectedTaskInEnv[envId] || null;
+    const handleTaskSelect = (task) => setSelectedTaskInEnv(envId, task);
 
     return (
       <div className="h-full flex">
@@ -73,7 +52,7 @@ const LeftPanel = (props) => {
                 title: `${environment?.name || 'Environment'} - Environment`,
                 group: { location: { type: 'popover' } },
                 onPanelOpen: () => setPopoverOpen(`env_${envId}`, false),
-                onTaskSelect: setSelectedTask
+                onTaskSelect: handleTaskSelect
               }}
             />
           </DockviewApiContext.Provider>
@@ -144,152 +123,202 @@ const LeftPanel = (props) => {
       );
     };
 
-
-
-  const openEnvironmentInNewPanel = (env) => {
-    console.log('openEnvironmentInNewPanel called:', env);
-    console.log('dockviewApi available:', !!dockviewApi);
-    
-    if (dockviewApi) {
-      const panelId = `environment_panel_${env.id}`;
-      console.log('Attempting to add panel:', panelId);
-      
-      try {
-        dockviewApi.addPanel({
-          id: panelId,
-          component: 'EnvironmentPanel',
-          title: env.name,
-          params: { environment: env },
-          position: { referencePanel: 'left_panel', direction: 'right' },
-        });
-        console.log('Panel added successfully');
-      } catch (error) {
-        console.error('Error adding panel:', error);
-      }
-    } else {
-      console.error('No dockview API available');
-    }
-  };
-
-  const openTaskInNewPanel = (task) => {
-    console.log('openTaskInNewPanel called:', task);
-    console.log('dockviewApi available:', !!dockviewApi);
-    
-    if (dockviewApi) {
-      const panelId = `task_panel_${task.id}`;
-      console.log('Attempting to add panel:', panelId);
-      
-      try {
-        dockviewApi.addPanel({
-          id: panelId,
-          component: 'TaskPanel',
-          title: task.name,
-          params: { task: task },
-          position: { referencePanel: 'left_panel', direction: 'right' },
-        });
-        console.log('Panel added successfully');
-      } catch (error) {
-        console.error('Error adding panel:', error);
-      }
-    } else {
-      console.error('No dockview API available');
-    }
-  };
-
   return (
     <div className="p-2.5 text-white h-full overflow-y-auto">
-      {/* Environments and Tasks */}
-      <div className="w-full">
-        {/* Environments Accordion */}
-        <div className="mb-5">
-          <div
-            onClick={() => toggleSection('environments')}
-            className="p-2.5 px-3 bg-gray-900 rounded cursor-pointer border border-gray-700 flex justify-between items-center mb-1 hover:bg-gray-800 transition-colors"
-          >
-            <h3 className="m-0">Environments</h3>
-            <span className="text-xs">
-              {expandedSections.environments ? '▼' : '▶'}
-            </span>
+      {/* Header with Tabs and Controls */}
+      <div className="flex items-center justify-between mb-4">
+        {/* Left-aligned Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-shrink-0">
+          <TabsList className="bg-gray-800 border-gray-700">
+            <TabsTrigger value="environments" className="data-[state=active]:bg-gray-700">
+              Environments
+            </TabsTrigger>
+            <TabsTrigger value="tasks" className="data-[state=active]:bg-gray-700">
+              Tasks
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        {/* Right-side Controls (only show for tasks tab) */}
+        {activeTab === 'tasks' && (
+          <div className="flex items-center gap-2">
+            {/* Sort Dropdown */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="bg-gray-800 border-gray-700 hover:bg-gray-700">
+                  Sort: {taskSortBy}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-48 bg-gray-900 border-gray-700">
+                <div className="space-y-1">
+                  <div
+                    className="cursor-pointer p-2 hover:bg-gray-700 rounded text-sm"
+                    onClick={() => setTaskSortBy('name')}
+                  >
+                    Name
+                  </div>
+                  <div
+                    className="cursor-pointer p-2 hover:bg-gray-700 rounded text-sm"
+                    onClick={() => setTaskSortBy('status')}
+                  >
+                    Status
+                  </div>
+                  <div
+                    className="cursor-pointer p-2 hover:bg-gray-700 rounded text-sm"
+                    onClick={() => setTaskSortBy('priority')}
+                  >
+                    Priority
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            {/* Filter Dropdown */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="bg-gray-800 border-gray-700 hover:bg-gray-700">
+                  Filter: {taskFilterBy}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-48 bg-gray-900 border-gray-700">
+                <div className="space-y-1">
+                  <div
+                    className="cursor-pointer p-2 hover:bg-gray-700 rounded text-sm"
+                    onClick={() => setTaskFilterBy('all')}
+                  >
+                    All
+                  </div>
+                  <div
+                    className="cursor-pointer p-2 hover:bg-gray-700 rounded text-sm"
+                    onClick={() => setTaskFilterBy('pending')}
+                  >
+                    Pending
+                  </div>
+                  <div
+                    className="cursor-pointer p-2 hover:bg-gray-700 rounded text-sm"
+                    onClick={() => setTaskFilterBy('in-progress')}
+                  >
+                    In Progress
+                  </div>
+                  <div
+                    className="cursor-pointer p-2 hover:bg-gray-700 rounded text-sm"
+                    onClick={() => setTaskFilterBy('completed')}
+                  >
+                    Completed
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
-          
-          {expandedSections.environments && (
-            <div className="pl-2">
-              {environments.map((env) => (
-                <Popover
-                  key={env.id}
-                  open={openPopovers[`env_${env.id}`] || false}
-                  onOpenChange={(open) => setPopoverOpen(`env_${env.id}`, open)}
+        )}
+      </div>
+
+      {/* Tab Content */}
+      <div className="space-y-2">
+        {activeTab === 'environments' && (
+          <div>
+            {environments.map((env) => (
+              <Popover
+                key={env.id}
+                open={openPopovers[`env_${env.id}`] || false}
+                onOpenChange={(open) => setPopoverOpen(`env_${env.id}`, open)}
+              >
+                <PopoverTrigger asChild>
+                  <div className="p-2 px-3 my-1 bg-gray-800 rounded cursor-pointer border border-gray-700 hover:bg-gray-700 transition-colors">
+                    {env.name}
+                  </div>
+                </PopoverTrigger>
+                <PopoverContent 
+                  className="w-[800px] h-screen p-0 bg-gray-900 border-gray-700"
+                  side="left"
+                  align="center"
                 >
-                  <PopoverTrigger asChild>
-                    <div className="p-2 px-3 my-1 bg-gray-800 rounded cursor-pointer border border-gray-700 hover:bg-gray-700 transition-colors">
-                      {env.name}
-                    </div>
-                  </PopoverTrigger>
-                  <PopoverContent 
-              className="w-[800px] h-screen p-0 bg-gray-900 border-gray-700"
-              side="left"
-              align="center"
-            >
-               <div className="h-full">
-                 <SplitEnvironmentPanel environment={env} envId={env.id} />
-               </div>
-            </PopoverContent>
-                </Popover>
-              ))}
-            </div>
-          )}
-        </div>
-        
-        {/* Tasks Accordion */}
-        <div>
-          <div
-            onClick={() => toggleSection('tasks')}
-            className="p-2.5 px-3 bg-gray-900 rounded cursor-pointer border border-gray-700 flex justify-between items-center mb-1 hover:bg-gray-800 transition-colors"
-          >
-            <h3 className="m-0">Tasks</h3>
-            <span className="text-xs">
-              {expandedSections.tasks ? '▼' : '▶'}
-            </span>
+                  <div className="h-full">
+                    <SplitEnvironmentPanel environment={env} envId={env.id} />
+                  </div>
+                </PopoverContent>
+              </Popover>
+            ))}
           </div>
-          
-          {expandedSections.tasks && (
-            <div className="pl-2">
-              {tasks.map((task) => (
-                <Popover
-                  key={task.id}
-                  open={openPopovers[`task_${task.id}`] || false}
-                  onOpenChange={(open) => setPopoverOpen(`task_${task.id}`, open)}
-                >
-                  <PopoverTrigger asChild>
-                    <div className="p-2 px-3 my-1 bg-gray-800 rounded cursor-pointer border border-gray-700 hover:bg-gray-700 transition-colors">
-                      {task.name}
+        )}
+
+        {activeTab === 'tasks' && (
+          <div>
+            {getFilteredAndSortedTasks().map((task) => {
+              const taskEnvironment = getEnvironmentById(task.environmentId);
+              return (
+                <div key={task.id} className="my-1">
+                  <div className="p-2 px-3 bg-gray-800 rounded border border-gray-700 hover:bg-gray-700 transition-colors">
+                    <div className="flex items-center gap-3">
+                      {/* Environment Button */}
+                      <Popover
+                        open={openPopovers[`task_env_${task.id}`] || false}
+                        onOpenChange={(open) => setPopoverOpen(`task_env_${task.id}`, open)}
+                      >
+                        <PopoverTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-shrink-0 bg-blue-700 border-blue-600 hover:bg-blue-600 text-blue-100 text-xs px-2 py-1"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {taskEnvironment?.name || 'Unknown'}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent 
+                          className="w-[800px] h-screen p-0 bg-gray-900 border-gray-700"
+                          side="left"
+                          align="center"
+                        >
+                          <div className="h-full">
+                            <SplitEnvironmentPanel environment={taskEnvironment} envId={taskEnvironment?.id} />
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+
+                      {/* Task Content - Clickable area for task details */}
+                      <Popover
+                        open={openPopovers[`task_${task.id}`] || false}
+                        onOpenChange={(open) => setPopoverOpen(`task_${task.id}`, open)}
+                      >
+                        <PopoverTrigger asChild>
+                          <div className="flex-1 flex items-center justify-between cursor-pointer">
+                            <span>{task.name}</span>
+                            <div className="flex items-center gap-2 text-xs">
+                              <span className={`px-2 py-1 rounded ${
+                                task.status === 'completed' ? 'bg-green-700 text-green-100' :
+                                task.status === 'in-progress' ? 'bg-yellow-700 text-yellow-100' :
+                                'bg-gray-600 text-gray-100'
+                              }`}>
+                                {task.status}
+                              </span>
+                              <span className={`px-2 py-1 rounded ${
+                                task.priority === 'high' ? 'bg-red-700 text-red-100' :
+                                task.priority === 'medium' ? 'bg-orange-700 text-orange-100' :
+                                'bg-blue-700 text-blue-100'
+                              }`}>
+                                {task.priority}
+                              </span>
+                            </div>
+                          </div>
+                        </PopoverTrigger>
+                        <PopoverContent 
+                          className="w-[800px] h-screen p-0 bg-gray-900 border-gray-700"
+                          side="left"
+                          align="center"
+                        >
+                          <div className="h-full">
+                            <SplitTaskPanel task={task} />
+                          </div>
+                        </PopoverContent>
+                      </Popover>
                     </div>
-                  </PopoverTrigger>
-                  <PopoverContent 
-              className="w-[800px] h-screen p-0 bg-gray-900 border-gray-700"
-              side="left"
-              align="center"
-            >
-               <div className="h-full">
-                <SplitTaskPanel  task={task} ></SplitTaskPanel>
-                 {/* <DockviewApiContext.Provider value={dockviewApi}>
-                   <TaskPanel 
-                     params={{ task: task }}
-                     api={{ 
-                       id: 'popover-task-panel',
-                       title: `${task?.name || 'Task'} - Task`,
-                       group: { location: { type: 'popover' } },
-                       onPanelOpen: () => setPopoverOpen(`task_${task.id}`, false)
-                     }}
-                   />
-                 </DockviewApiContext.Provider> */}
-               </div>
-            </PopoverContent>
-                </Popover>
-              ))}
-            </div>
-          )}
-        </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

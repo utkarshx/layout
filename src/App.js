@@ -1,10 +1,12 @@
-import React, { useState, useMemo, useRef, createContext } from 'react';
+import React, { useState, useMemo, useRef, createContext, useEffect } from 'react';
 import { DockviewReact } from 'dockview-react';
 import 'dockview-core/dist/styles/dockview.css';
 import './App.css';
 import LeftPanel from './LeftPanel';
 import EnvironmentPanel from './EnvironmentPanel';
 import TaskPanel from './TaskPanel';
+import TaskDetailPanel from './TaskDetailPanel';
+import TaskChatPanel from './TaskChatPanel';
 import ChatPanel from './ChatPanel';
 import EnvironmentTasksPanel from './EnvironmentTasksPanel';
 import EnvironmentDiffPanel from './EnvironmentDiffPanel';
@@ -16,10 +18,17 @@ const App = () => {
   const [dockviewApi, setDockviewApi] = useState(null);
   const dockviewApiRef = useRef(null);
 
+  // Enable dark mode on app load
+  useEffect(() => {
+    document.documentElement.classList.add('dark');
+  }, []);
+
   const components = useMemo(() => ({
     LeftPanel: (props) => <LeftPanel {...props} dockviewApi={dockviewApi} />,
     EnvironmentPanel: (props) => <EnvironmentPanel {...props} dockviewApi={dockviewApi} />,
     TaskPanel: (props) => <TaskPanel {...props} />,
+    TaskDetailPanel: (props) => <TaskDetailPanel {...props} />,
+    TaskChatPanel: (props) => <TaskChatPanel {...props} />,
     ChatPanel: (props) => <ChatPanel {...props} />,
     EnvironmentTasksPanel: (props) => <EnvironmentTasksPanel {...props} />,
     EnvironmentDiffPanel: (props) => <EnvironmentDiffPanel {...props} />,
