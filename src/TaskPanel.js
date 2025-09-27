@@ -41,19 +41,19 @@ const TaskPanel = (props) => {
       // Add task detail panel
       nestedApi.addPanel({
         id: 'task_detail',
-        component: 'TaskDetailPanel',
+        component: 'TaskChatPanel',
         title: 'Task Detail',
         params: { task, environment },
       });
 
       // Add task chat panel
-      nestedApi.addPanel({
-        id: 'task_chat',
-        component: 'TaskChatPanel',
-        title: 'Chat',
-        params: { task },
-        position: { referencePanel: 'task_detail', direction: 'right' },
-      });
+      // nestedApi.addPanel({
+      //   id: 'task_chat',
+      //   component: 'TaskChatPanel',
+      //   title: 'Chat',
+      //   params: { task, environment },
+      //   position: { referencePanel: 'task_detail', direction: 'right' },
+      // });
 
       console.log('Nested panels added successfully');
     } catch (error) {

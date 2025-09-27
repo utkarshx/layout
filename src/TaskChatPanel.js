@@ -1,9 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from './components/ui/button';
+import ChatContextStrip from './ChatContextStrip';
+import useAppStore from './store/useAppStore';
 
 const TaskChatPanel = (props) => {
   const { params } = props;
-  const { task } = params || {};
+  const { task, environment } = params || {};
+
+  // Get environments from Zustand store
+  const { environments } = useAppStore();
 
   // Chat state for task-specific chat
   const [messages, setMessages] = useState([
@@ -12,6 +17,23 @@ const TaskChatPanel = (props) => {
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const messagesEndRef = useRef(null);
+  const panelRef = useRef(null);
+
+  // ChatContextStrip related state
+  const [isRemoteTask, setIsRemoteTask] = useState(!!environment);
+  const [sendMode, setSendMode] = useState('schedule'); // Default to schedule for task chats
+  const [selectedEnvironment, setSelectedEnvironment] = useState(environment);
+  const [taskDrawerOpen, setTaskDrawerOpen] = useState(false);
+  const [envPopoverOpen, setEnvPopoverOpen] = useState(false);
+  const [envViewMode, setEnvViewMode] = useState('info');
+
+  // Create activeChat object to match ChatContextStrip interface
+  const activeChat = {
+    id: `task_${task?.id}`,
+    title: task?.name || 'Task Chat',
+    type: 'task',
+    messages: messages
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -58,12 +80,27 @@ const TaskChatPanel = (props) => {
   };
 
   return (
-    <div className="text-white h-full overflow-hidden">
+    <div ref={panelRef} className="text-white h-full overflow-hidden flex flex-col">
       <div className="p-2.5 border-b border-gray-700 bg-black">
         <h4 className="m-0">Task Chat</h4>
       </div>
       
-      <div className="h-[calc(100%-50px)] p-5 overflow-hidden flex flex-col">
+      <div className="flex-1 p-5 overflow-hidden flex flex-col">
+        {/* Chat Context Strip */}
+        <ChatContextStrip
+          activeChat={activeChat}
+          isRemoteTask={isRemoteTask}
+          sendMode={sendMode}
+          selectedEnvironment={selectedEnvironment}
+          taskDrawerOpen={taskDrawerOpen}
+          setTaskDrawerOpen={setTaskDrawerOpen}
+          envPopoverOpen={envPopoverOpen}
+          setEnvPopoverOpen={setEnvPopoverOpen}
+          envViewMode={envViewMode}
+          setEnvViewMode={setEnvViewMode}
+          panelRef={panelRef}
+        />
+
         {/* Chat Messages Container */}
         <div className="flex-1 overflow-y-auto bg-gray-900 rounded-lg p-3.75 mb-3.75 border border-gray-800">
           {messages.map((message) => (
