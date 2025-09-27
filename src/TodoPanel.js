@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import TaskList from '@tiptap/extension-task-list';
-import TaskItem from '@tiptap/extension-task-item';
+import TaskItemWithSetTask from './extensions/TaskItemWithSetTask';
 import { Button } from './components/ui/button';
 import { CheckSquare } from 'lucide-react';
 
@@ -16,7 +16,7 @@ const TodoPanel = () => {
   const [content, setContent] = useState(INITIAL_CONTENT);
 
   const editor = useEditor({
-    extensions: [StarterKit, TaskList, TaskItem],
+    extensions: [StarterKit, TaskList, TaskItemWithSetTask],
     content,
     editorProps: {
       attributes: {
