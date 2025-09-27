@@ -62,14 +62,62 @@ const App = () => {
     }
   };
 
+  const HeaderStrip = () => (
+    <div className="bg-gray-900 border-b border-gray-700 px-3 py-1 flex items-center justify-between h-8">
+      <div className="flex items-center space-x-3">
+        <h1 className="text-white font-medium text-sm">CodeBolt Layout</h1>
+      </div>
+      <div className="flex items-center space-x-1">
+        <button 
+          className="px-2 py-0.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors"
+          onClick={() => {
+            if (dockviewApi) {
+              // Check if task panel already exists
+              const existingPanel = dockviewApi.getPanel('task_panel');
+              if (!existingPanel) {
+                dockviewApi.addPanel({
+                  id: 'task_panel',
+                  component: 'TaskPanel',
+                  title: 'Tasks',
+                  position: { referencePanel: 'chat_panel', direction: 'right' },
+                });
+              } else {
+                existingPanel.focus();
+              }
+            }
+          }}
+        >
+          Tasks
+        </button>
+        <button 
+          className="px-2 py-0.5 bg-green-600 hover:bg-green-700 text-white text-xs rounded transition-colors"
+          onClick={() => {
+            if (dockviewApi) {
+              // Focus on chat panel if it exists
+              const chatPanel = dockviewApi.getPanel('chat_panel');
+              if (chatPanel) {
+                chatPanel.focus();
+              }
+            }
+          }}
+        >
+          Chat
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <DockviewApiContext.Provider value={dockviewApi}>
-      <div style={{ height: '100vh' }}>
-        <DockviewReact
-          components={components}
-          onReady={onReady}
-          className="dockview-theme-dark"
-        />
+      <div style={{ height: '100vh' }} className="flex flex-col">
+        <HeaderStrip />
+        <div className="flex-1">
+          <DockviewReact
+            components={components}
+            onReady={onReady}
+            className="dockview-theme-dark"
+          />
+        </div>
       </div>
     </DockviewApiContext.Provider>
   );

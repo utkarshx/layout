@@ -101,55 +101,86 @@ const EnvironmentPanel = (props) => {
     }
   }, [nestedDockviewApi, activePanels, environment]);
 
-  // shadcn Select dropdown handler
-  const handleAddPanel = useCallback((selectedPanelId) => {
-    if (!selectedPanelId) return;
-    
-    const panelConfig = availablePanels.find(panel => panel.id === selectedPanelId);
-    if (panelConfig) {
-      addPanel(panelConfig);
-    }
-  }, [availablePanels, addPanel]);
+  // State for Add Tool dropdown
+  const [isAddToolOpen, setIsAddToolOpen] = useState(false);
 
-  // Left Header Actions Component for Dockview - shadcn Select
-  const LeftHeaderActionsComponent = useCallback((props) => {
-    const availableOptions = availablePanels.filter(panel => !activePanels.has(panel.id));
-    
-    return (
-      <div className="flex items-center h-full">
-        <div className="flex items-center gap-2 px-3 h-full">
-          <Plus className="h-4 w-4 text-gray-300" />
-          <Select onValueChange={handleAddPanel}>
-            <SelectTrigger className="w-[140px] h-8 bg-gray-800 text-gray-300 border-gray-600 hover:bg-gray-700">
-              <SelectValue placeholder="Add Tool" />
-            </SelectTrigger>
-            <SelectContent className="bg-gray-800 border-gray-600">
-              {availableOptions.map((panel) => {
+  // Refs and effects for dropdown
+  const dropdownRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsAddToolOpen(false);
+      }
+    };
+
+    if (isAddToolOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isAddToolOpen]);
+
+  // Left Header Actions Component for Dockview - matches group height
+  const LeftHeaderActionsComponent = useCallback((props) => (
+    <div className="flex items-center h-full relative" ref={dropdownRef}>
+      <button
+        className="h-full px-3 bg-transparent hover:bg-gray-700/50 border-none text-gray-300 flex items-center gap-2 text-sm transition-colors cursor-pointer"
+        style={{ 
+          minHeight: '100%',
+          borderRadius: '0',
+          border: 'none',
+          background: 'transparent'
+        }}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('Add Tool button clicked, current state:', isAddToolOpen);
+          setIsAddToolOpen(!isAddToolOpen);
+        }}
+      >
+        <Plus className="h-4 w-4" />
+        <span>Add Tool</span>
+      </button>
+      
+      {isAddToolOpen && (
+        <div 
+          className="absolute top-full left-0 w-56 p-2 bg-gray-800 border border-gray-600 rounded shadow-lg"
+          style={{ zIndex: 9999 }}
+        >
+          <div className="space-y-1">
+            <h5 className="text-sm font-medium text-white mb-2">Add Panel</h5>
+            {availablePanels
+              .filter(panel => !activePanels.has(panel.id))
+              .map((panel) => {
                 const IconComponent = panel.icon;
                 return (
-                  <SelectItem 
-                    key={panel.id} 
-                    value={panel.id}
-                    className="text-gray-300 hover:bg-gray-700 focus:bg-gray-700"
+                  <button
+                    key={panel.id}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      console.log('Panel selected:', panel.title);
+                      addPanel(panel);
+                      setIsAddToolOpen(false);
+                    }}
+                    className="w-full flex items-center gap-3 p-2 text-left text-sm text-white hover:bg-gray-700 rounded transition-colors"
                   >
-                    <div className="flex items-center gap-2">
-                      <IconComponent className="h-4 w-4" />
-                      <span>{panel.title}</span>
-                    </div>
-                  </SelectItem>
+                    <IconComponent className="h-4 w-4 text-gray-400" />
+                    <span>{panel.title}</span>
+                  </button>
                 );
               })}
-              {availableOptions.length === 0 && (
-                <SelectItem value="no-options" disabled className="text-gray-500">
-                  All panels are active
-                </SelectItem>
-              )}
-            </SelectContent>
-          </Select>
+            {availablePanels.filter(panel => !activePanels.has(panel.id)).length === 0 && (
+              <div className="text-sm text-gray-400 p-2 text-center">
+                All panels are already active
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    );
-  }, [availablePanels, activePanels, handleAddPanel]);
+      )}
+    </div>
+  ), [availablePanels, activePanels, addPanel, isAddToolOpen, setIsAddToolOpen]);
 
   const nestedComponents = useMemo(() => ({
     EnvironmentTasksPanel: (props) => <EnvironmentTasksPanel {...props} onTaskSelect={onTaskSelect} />,

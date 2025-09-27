@@ -299,7 +299,7 @@ const LeftPanel = (props) => {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="flex-shrink-0 bg-blue-700 border-blue-600 hover:bg-blue-600 text-blue-100 text-xs px-2 py-1"
+                            className="flex-shrink-0 bg-gray-700 border-gray-600 hover:bg-gray-600 text-gray-200 text-xs px-2 py-1"
                             onClick={(e) => e.stopPropagation()}
                           >
                             {taskEnvironment?.name || 'Unknown'}
@@ -325,18 +325,10 @@ const LeftPanel = (props) => {
                           <div className="flex-1 flex items-center justify-between cursor-pointer">
                             <span>{task.name}</span>
                             <div className="flex items-center gap-2 text-xs">
-                              <span className={`px-2 py-1 rounded ${
-                                task.status === 'completed' ? 'bg-green-700 text-green-100' :
-                                task.status === 'in-progress' ? 'bg-yellow-700 text-yellow-100' :
-                                'bg-gray-600 text-gray-100'
-                              }`}>
+                              <span className="px-2 py-1 rounded bg-gray-600 text-gray-200 border border-gray-500">
                                 {task.status}
                               </span>
-                              <span className={`px-2 py-1 rounded ${
-                                task.priority === 'high' ? 'bg-red-700 text-red-100' :
-                                task.priority === 'medium' ? 'bg-orange-700 text-orange-100' :
-                                'bg-blue-700 text-blue-100'
-                              }`}>
+                              <span className="px-2 py-1 rounded bg-gray-700 text-gray-200 border border-gray-500">
                                 {task.priority}
                               </span>
                             </div>
