@@ -13,6 +13,7 @@ import TodoPanel from './TodoPanel';
 import EnvironmentTasksPanel from './EnvironmentTasksPanel';
 import EnvironmentDiffPanel from './EnvironmentDiffPanel';
 import EnvironmentInfoPanel from './EnvironmentInfoPanel';
+import TaskFlowPanel from './TaskFlowPanel';
 import useAppStore from './store/useAppStore';
 import { Button } from './components/ui/button';
 import { Popover, PopoverTrigger, PopoverContent } from './components/ui/popover';
@@ -43,6 +44,7 @@ const App = () => {
     EnvironmentTasksPanel: (props) => <EnvironmentTasksPanel {...props} />,
     EnvironmentDiffPanel: (props) => <EnvironmentDiffPanel {...props} />,
     EnvironmentInfoPanel: (props) => <EnvironmentInfoPanel {...props} />,
+    TaskFlowPanel: (props) => <TaskFlowPanel {...props} />,
   }), [dockviewApi]);
 
   const closeIfExists = (api, id) => {
@@ -153,6 +155,7 @@ const App = () => {
                 environment_list: () => ({ referencePanel: 'left_panel', direction: 'below' }),
                 todo_panel: () => ({ referencePanel: 'chat_panel', direction: 'right' }),
                 left_panel: () => undefined,
+                taskflow_panel: () => ({ referencePanel: 'todo_panel', direction: 'right' }),
               };
 
               return (
@@ -187,6 +190,12 @@ const App = () => {
                         onClick={() => openOrFocus('todo_panel', 'TodoPanel', 'Todo Lists', defaultPositions.todo_panel())}
                       >
                         Todo
+                      </button>
+                      <button
+                        className="w-full text-left px-2 py-1 rounded hover:bg-gray-700"
+                        onClick={() => openOrFocus('taskflow_panel', 'TaskFlowPanel', 'Task Flow', defaultPositions.taskflow_panel())}
+                      >
+                        Task Flow
                       </button>
                     </div>
                   </PopoverContent>

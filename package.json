@@ -17,6 +17,7 @@
     "@tiptap/extension-task-list": "^3.6.1",
     "@tiptap/react": "^3.6.1",
     "@tiptap/starter-kit": "^3.6.1",
+    "@xyflow/react": "^12.8.6",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dockview-core": "^4.9.0",
