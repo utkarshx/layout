@@ -14,6 +14,9 @@ import EnvironmentTasksPanel from './EnvironmentTasksPanel';
 import EnvironmentDiffPanel from './EnvironmentDiffPanel';
 import EnvironmentInfoPanel from './EnvironmentInfoPanel';
 import useAppStore from './store/useAppStore';
+import { Button } from './components/ui/button';
+import { Popover, PopoverTrigger, PopoverContent } from './components/ui/popover';
+import { Plus } from 'lucide-react';
 
 export const DockviewApiContext = createContext(null);
 
@@ -130,6 +133,66 @@ const App = () => {
             components={components}
             onReady={onReady}
             className="dockview-theme-dark"
+            leftHeaderActionsComponent={() => {
+              const openOrFocus = (id, component, title, position) => {
+                const api = dockviewApiRef.current;
+                if (!api) return;
+                const existing = api.getPanel(id);
+                if (existing) {
+                  existing.focus();
+                  return;
+                }
+                try {
+                  api.addPanel({ id, component, title, position });
+                } catch {}
+              };
+
+              // Decide default positioning when re-creating panels
+              const defaultPositions = {
+                chat_panel: () => ({ referencePanel: 'left_panel', direction: 'right' }),
+                environment_list: () => ({ referencePanel: 'left_panel', direction: 'below' }),
+                todo_panel: () => ({ referencePanel: 'chat_panel', direction: 'right' }),
+                left_panel: () => undefined,
+              };
+
+              return (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="ghost" className="h-full w-7 p-0" title="Open panel">
+                      <Plus className="h-3.5 w-3.5" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-44 bg-gray-900 border-gray-700 p-1">
+                    <div className="space-y-1 text-sm">
+                      <button
+                        className="w-full text-left px-2 py-1 rounded hover:bg-gray-700"
+                        onClick={() => openOrFocus('chat_panel', 'ChatPanel', 'Chat', defaultPositions.chat_panel())}
+                      >
+                        Chat
+                      </button>
+                      <button
+                        className="w-full text-left px-2 py-1 rounded hover:bg-gray-700"
+                        onClick={() => openOrFocus('left_panel', 'LeftPanel', 'Controls', defaultPositions.left_panel())}
+                      >
+                        Task List
+                      </button>
+                      <button
+                        className="w-full text-left px-2 py-1 rounded hover:bg-gray-700"
+                        onClick={() => openOrFocus('environment_list', 'EnvironmentListPanel', 'Environment Lists', defaultPositions.environment_list())}
+                      >
+                        Environment List
+                      </button>
+                      <button
+                        className="w-full text-left px-2 py-1 rounded hover:bg-gray-700"
+                        onClick={() => openOrFocus('todo_panel', 'TodoPanel', 'Todo Lists', defaultPositions.todo_panel())}
+                      >
+                        Todo
+                      </button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              );
+            }}
           />
         </div>
       </div>

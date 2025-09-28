@@ -586,7 +586,7 @@ const ChatPanel = (props) => {
         {/* Bottom Controls */}
         <div className="flex items-center justify-between mt-4">
           {/* Left Side Controls */}
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col items-start gap-2">
             {/* Remote Checkbox */}
             <div className="flex items-center gap-2">
               <input
@@ -611,7 +611,7 @@ const ChatPanel = (props) => {
 
             {/* Environment Dropdown - Show when Remote is checked */}
             {activeChat?.isRemote && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 mt-1">
                 <span className="text-gray-400 text-sm">Environment:</span>
                 <select
                   value={activeChat?.environmentId || ''}
@@ -623,7 +623,7 @@ const ChatPanel = (props) => {
                       environmentId: envId || undefined
                     } : c));
                   }}
-                  className="px-2 py-1 bg-background border border-input rounded text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent disabled:opacity-50"
+                  className="w-32 sm:w-40 px-2 py-1 bg-background border border-input rounded text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent disabled:opacity-50"
                 >
                   <option value="">Select Environment</option>
                   {environments.map((env) => (
