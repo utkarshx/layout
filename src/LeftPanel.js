@@ -295,8 +295,8 @@ const LeftPanel = (props) => {
             {getFilteredAndSortedTasks().map((task) => {
               const taskEnvironment = getEnvironmentById(task.environmentId);
               return (
-                <div key={task.id} className="my-1">
-                  <div className="p-2 px-3 bg-gray-800 rounded border border-gray-700 hover:bg-gray-700 transition-colors">
+                <div key={task.id} className="mb-1">
+                  <div className="px-0 py-0 bg-gray-800 rounded border border-gray-700 hover:bg-gray-700 transition-colors">
                     <div className="flex items-center gap-3">
                       {/* Environment Button */}
                       <Popover

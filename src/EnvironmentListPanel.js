@@ -5,6 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from './components/ui/popover
 import EnvironmentPanel from './EnvironmentPanel';
 import TaskPanel from './TaskPanel';
 import useAppStore from './store/useAppStore';
+import { Eye, Pin, PanelLeft } from 'lucide-react';
 
 const EnvironmentListPanel = (props) => {
   const { api } = props;
@@ -27,6 +28,7 @@ const EnvironmentListPanel = (props) => {
     environmentOpenMode,
     setEnvironmentOpenMode,
     setCurrentGeneralEnvironment,
+    setPinnedEnvironment,
   } = useAppStore();
 
   // Split Environment Panel Component
@@ -126,19 +128,30 @@ const EnvironmentListPanel = (props) => {
             <div className="flex items-center gap-1 bg-gray-800 border border-gray-700 rounded p-0.5">
               <Button
                 size="sm"
-                variant={environmentOpenMode === 'panel' ? 'active' : 'outline'}
-                className="px-2 py-1 text-xs"
-                onClick={() => setEnvironmentOpenMode('panel')}
+                variant="outline"
+                className={`px-2 py-1 text-xs ${environmentOpenMode === 'preview' ? 'bg-gray-700 text-white border-gray-600' : 'bg-transparent text-gray-300 border-transparent hover:bg-gray-700'}`}
+                onClick={() => setEnvironmentOpenMode('preview')}
+                title="Preview"
               >
-                Environment Panel
+                <Eye className="h-4 w-4" />
               </Button>
               <Button
                 size="sm"
-                variant={environmentOpenMode === 'pinned' ? 'active' : 'outline'}
-                className="px-2 py-1 text-xs"
+                variant="outline"
+                className={`px-2 py-1 text-xs ${environmentOpenMode === 'pinned' ? 'bg-gray-700 text-white border-gray-600' : 'bg-transparent text-gray-300 border-transparent hover:bg-gray-700'}`}
                 onClick={() => setEnvironmentOpenMode('pinned')}
+                title="Pinned Panel"
               >
-                Pinned Panel
+                <Pin className="h-4 w-4" />
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className={`px-2 py-1 text-xs ${environmentOpenMode === 'general' ? 'bg-gray-700 text-white border-gray-600' : 'bg-transparent text-gray-300 border-transparent hover:bg-gray-700'}`}
+                onClick={() => setEnvironmentOpenMode('general')}
+                title="Environment Panel"
+              >
+                <PanelLeft className="h-4 w-4" />
               </Button>
             </div>
             {/* Tasks Dropdown */}
@@ -184,42 +197,50 @@ const EnvironmentListPanel = (props) => {
             key={env.id}
             open={openPopovers[`env_${env.id}`] || false}
             onOpenChange={(open) => {
-              if (environmentOpenMode === 'panel') {
+              if (environmentOpenMode === 'preview') {
                 setPopoverOpen(`env_${env.id}`, open);
-              } else {
-                if (open) {
-                  // In pinned mode, prefer reusing the general environment panel if present
-                  const generalPanel = dockviewApi?.getPanel('general_environment_panel');
-                  if (generalPanel) {
+                return;
+              }
+              if (open) {
+                if (environmentOpenMode === 'general') {
+                  // Focus existing general panel and change environment
+                  let generalPanel = dockviewApi?.getPanel('general_environment_panel');
+                  if (!generalPanel && dockviewApi) {
                     try {
-                      setCurrentGeneralEnvironment(env);
-                      generalPanel.focus();
+                      dockviewApi.addPanel({
+                        id: 'general_environment_panel',
+                        component: 'EnvironmentPanel',
+                        title: 'Environment Panel',
+                        params: { environment: env },
+                        position: { referencePanel: 'left_panel', direction: 'right' },
+                      });
+                      generalPanel = dockviewApi.getPanel('general_environment_panel');
                     } catch (e) {
-                      console.error('Error focusing general environment panel:', e);
-                    }
-                  } else {
-                    // fallback to creating a pinned panel if no general panel exists
-                    const panelId = `pinned_environment_panel_${env.id}`;
-                    const existing = dockviewApi?.getPanel(panelId);
-                    if (existing) {
-                      existing.focus();
-                    } else {
-                      try {
-                        dockviewApi?.addPanel({
-                          id: panelId,
-                          component: 'EnvironmentPanel',
-                          title: 'Pinned Environment',
-                          params: { environment: env, isPinned: true },
-                          position: { referencePanel: 'left_panel', direction: 'right' },
-                        });
-                      } catch (error) {
-                        console.error('Error adding pinned environment panel:', error);
-                      }
+                      console.error('Error creating general environment panel:', e);
                     }
                   }
+                  if (generalPanel) {
+                    setCurrentGeneralEnvironment(env);
+                    generalPanel.focus();
+                  }
+                } else if (environmentOpenMode === 'pinned') {
+                  // Always open a new pinned environment panel for the selected env
+                  const uniqueId = `pinned_environment_panel_${env.id}_${Date.now()}`;
+                  try {
+                    const panel = dockviewApi?.addPanel({
+                      id: uniqueId,
+                      component: 'EnvironmentPanel',
+                      title: 'Pinned Environment',
+                      params: { environment: env, isPinned: true },
+                      position: { referencePanel: 'left_panel', direction: 'right' },
+                    });
+                    panel?.focus();
+                  } catch (e) {
+                    console.error('Error creating pinned environment panel:', e);
+                  }
                 }
-                setPopoverOpen(`env_${env.id}`, false);
               }
+              setPopoverOpen(`env_${env.id}`, false);
             }}
           >
             <PopoverTrigger asChild>

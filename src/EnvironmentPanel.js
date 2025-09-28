@@ -41,18 +41,13 @@ const EnvironmentPanel = (props) => {
   
   // State for current environment (can be different from initial if this is a general panel)
   const [currentEnvironment, setCurrentEnvironment] = useState(
-    isPinned ? pinnedEnvironment : (currentGeneralEnvironment || initialEnvironment)
+    isPinned ? initialEnvironment : (currentGeneralEnvironment || initialEnvironment)
   );
   
   // Use current environment or fallback to initial
   const environment = currentEnvironment || initialEnvironment;
   
-  // Update current environment when pinnedEnvironment changes (for pinned panels)
-  useEffect(() => {
-    if (isPinned && pinnedEnvironment) {
-      setCurrentEnvironment(pinnedEnvironment);
-    }
-  }, [isPinned, pinnedEnvironment]);
+  // For pinned panels, keep the initial environment fixed
 
   // Update current environment when currentGeneralEnvironment changes (for general panel)
   useEffect(() => {

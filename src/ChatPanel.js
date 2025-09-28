@@ -20,25 +20,24 @@ import useAppStore from './store/useAppStore';
 const ChatPanel = (props) => {
   const dockviewApi = useContext(DockviewApiContext);
 
-  // Multiple chats state
+  // Multiple chats state (each chat keeps its own configuration)
   const [chats, setChats] = useState([
     {
       id: 'chat1',
       title: 'Chat 1',
-      type: 'chat',
-      messages: [
-       
-      ]
+      type: undefined, // determined on first message
+      messages: [],
+      locked: false,
+      isRemote: false,
+      environmentId: undefined,
+      sendMode: 'interactive', // 'interactive' | 'schedule'
     }
   ]);
   const [activeChatId, setActiveChatId] = useState('chat1');
   const [inputMessage, setInputMessage] = useState('');
   // removed unused taskPopover/extra states to keep UI minimal
-  const [isRemoteTask, setIsRemoteTask] = useState(false);
-  const [sendMode, setSendMode] = useState('interactive');
   const [envPopoverOpen, setEnvPopoverOpen] = useState(false);
   const [envViewMode, setEnvViewMode] = useState('info');
-  const [selectedEnvironment, setSelectedEnvironment] = useState(null);
   const [chatListOpen, setChatListOpen] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
   // removed unused taskViewMode and showTaskTabs
@@ -53,6 +52,7 @@ const ChatPanel = (props) => {
   const [canScrollRight, setCanScrollRight] = useState(false);
 
   const activeChat = chats.find(chat => chat.id === activeChatId);
+  const activeEnv = environments.find(env => env.id === (activeChat?.environmentId || '')) || null;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -126,6 +126,10 @@ const ChatPanel = (props) => {
         type: 'task',
         taskId: task.id,
         messages: initialMessages,
+        locked: true,
+        isRemote: !!env,
+        environmentId: env?.id,
+        sendMode: 'schedule',
       };
       setChats((prev) => [...prev, newChat]);
       setActiveChatId(newChatId);
@@ -144,7 +148,7 @@ const ChatPanel = (props) => {
     };
 
     // Determine chat type if this is the first message
-    const chatType = activeChat.type || (sendMode === 'schedule' ? 'task' : 'chat');
+    const chatType = activeChat.type || (activeChat.sendMode === 'schedule' ? 'task' : 'chat');
 
     // Update the active chat with new message and type
     setChats(prevChats =>
@@ -153,7 +157,8 @@ const ChatPanel = (props) => {
           ? { 
               ...chat, 
               messages: [...chat.messages, newMessage],
-              type: chatType // Set type based on send mode if not already set
+              type: chatType, // Set type based on send mode if not already set
+              locked: true
             }
           : chat
       )
@@ -367,19 +372,19 @@ const ChatPanel = (props) => {
             <div className="flex items-center gap-3">
               {/* Mode and Type Display */}
               <span className="text-muted-foreground text-xs font-medium">
-                {isRemoteTask ? '🌐' : '💻'} {isRemoteTask ? 'Remote' : 'Local'} {activeChat?.type === 'task' || sendMode === 'schedule' ? 'Task' : 'Chat'}:
+                {(activeChat?.isRemote ? '🌐' : '💻')} {(activeChat?.isRemote ? 'Remote' : 'Local')} {(activeChat?.type === 'task' || activeChat?.sendMode === 'schedule') ? 'Task' : 'Chat'}:
               </span>
               
               {/* Environment Name (for Remote) or Chat Title */}
               <span className="text-foreground text-xs font-medium">
-                {isRemoteTask && selectedEnvironment ? selectedEnvironment.name : activeChat.title}
+                {activeChat?.isRemote && activeEnv ? activeEnv.name : activeChat?.title}
               </span>
             </div>
 
             {/* Action Buttons */}
             <div className="flex items-center gap-1">
               {/* Task Tabs and View Task Button - Show for tasks */}
-              {(activeChat?.type === 'task' || sendMode === 'schedule') && (
+              {(activeChat?.type === 'task' || activeChat?.sendMode === 'schedule') && (
                 <div className="flex items-center gap-1">
                   {/* Task Tabs - Show when showTaskTabs is true */}
                  
@@ -422,7 +427,7 @@ const ChatPanel = (props) => {
                                   name: activeChat?.title || 'Untitled Task',
                                   id: activeChat?.id 
                                 }, 
-                                environment: selectedEnvironment 
+                                environment: activeEnv 
                               }}
                               api={{
                                 id: 'drawer-task-detail-panel',
@@ -448,7 +453,7 @@ const ChatPanel = (props) => {
               )}
 
               {/* Info/Diff Buttons - Show for Remote */}
-              {isRemoteTask && selectedEnvironment && (
+              {activeChat?.isRemote && activeEnv && (
                 <>
                   <Popover open={envPopoverOpen && envViewMode === 'info'} onOpenChange={(open) => {
                     if (open) setEnvViewMode('info');
@@ -463,7 +468,7 @@ const ChatPanel = (props) => {
                       <div className="h-full">
                         <DockviewApiContext.Provider value={dockviewApi}>
                           <EnvironmentPanel
-                            params={{ environment: selectedEnvironment }}
+                            params={{ environment: activeEnv }}
                             api={{
                               id: 'popover-env-info-panel',
                               title: 'Environment Info',
@@ -489,7 +494,7 @@ const ChatPanel = (props) => {
                       <div className="h-full">
                         <DockviewApiContext.Provider value={dockviewApi}>
                           <EnvironmentPanel
-                            params={{ environment: selectedEnvironment }}
+                            params={{ environment: activeEnv }}
                             api={{
                               id: 'popover-env-diff-panel',
                               title: 'Environment Diff',
@@ -587,14 +592,17 @@ const ChatPanel = (props) => {
               <input
                 type="checkbox"
                 id="remote-task"
-                checked={isRemoteTask}
+                checked={!!activeChat?.isRemote}
+                disabled={!!activeChat?.locked}
                 onChange={(e) => {
-                  setIsRemoteTask(e.target.checked);
-                  if (!e.target.checked) {
-                    setSelectedEnvironment(null);
-                  }
+                  const isRemote = e.target.checked;
+                  setChats(prev => prev.map(c => c.id === activeChatId ? {
+                    ...c,
+                    isRemote,
+                    environmentId: isRemote ? c.environmentId : undefined
+                  } : c));
                 }}
-                className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+                className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2 disabled:opacity-50"
               />
               <label htmlFor="remote-task" className="text-gray-300 text-sm font-medium cursor-pointer">
                 Remote
@@ -602,16 +610,20 @@ const ChatPanel = (props) => {
             </div>
 
             {/* Environment Dropdown - Show when Remote is checked */}
-            {isRemoteTask && (
+            {activeChat?.isRemote && (
               <div className="flex items-center gap-2">
                 <span className="text-gray-400 text-sm">Environment:</span>
                 <select
-                  value={selectedEnvironment?.id || ''}
+                  value={activeChat?.environmentId || ''}
+                  disabled={!!activeChat?.locked}
                   onChange={(e) => {
-                    const env = environments.find(env => env.id === e.target.value);
-                    setSelectedEnvironment(env || null);
+                    const envId = e.target.value;
+                    setChats(prev => prev.map(c => c.id === activeChatId ? {
+                      ...c,
+                      environmentId: envId || undefined
+                    } : c));
                   }}
-                  className="px-2 py-1 bg-background border border-input rounded text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                  className="px-2 py-1 bg-background border border-input rounded text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent disabled:opacity-50"
                 >
                   <option value="">Select Environment</option>
                   {environments.map((env) => (
@@ -620,28 +632,28 @@ const ChatPanel = (props) => {
                     </option>
                   ))}
                 </select>
-                
-                
               </div>
             )}
           </div>
 
           {/* Mode Indicator */}
           <div className="text-xs text-gray-400">
-          <div className="flex bg-muted rounded-lg p-1">
+            <div className="flex bg-muted rounded-lg p-1">
               <Button
-                onClick={() => setSendMode('interactive')}
-                variant={sendMode === 'interactive' ? 'active' : 'ghost'}
+                onClick={() => setChats(prev => prev.map(c => c.id === activeChatId ? { ...c, sendMode: 'interactive' } : c))}
+                variant={activeChat?.sendMode === 'interactive' ? 'active' : 'ghost'}
                 size="sm"
                 className="h-7 px-2 text-xs"
+                disabled={!!activeChat?.locked}
               >
                 Interactive
               </Button>
               <Button
-                onClick={() => setSendMode('schedule')}
-                variant={sendMode === 'schedule' ? 'active' : 'ghost'}
+                onClick={() => setChats(prev => prev.map(c => c.id === activeChatId ? { ...c, sendMode: 'schedule' } : c))}
+                variant={activeChat?.sendMode === 'schedule' ? 'active' : 'ghost'}
                 size="sm"
                 className="h-7 px-2 text-xs"
+                disabled={!!activeChat?.locked}
               >
                 Schedule
               </Button>
