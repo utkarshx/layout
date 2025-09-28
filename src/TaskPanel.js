@@ -46,13 +46,12 @@ const TaskPanel = (props) => {
         params: { task, environment },
       });
 
-      // Add task chat panel
+      // Add task chat panel in the same group (as a tab)
       nestedApi.addPanel({
         id: 'task_chat',
         component: 'TaskChatPanel',
         title: 'Chat',
         params: { task },
-        position: { referencePanel: 'task_detail', direction: 'right' },
       });
 
       console.log('Nested panels added successfully');

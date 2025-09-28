@@ -10,6 +10,14 @@ import { Eye, SquareArrowOutUpRight, MessageSquare } from 'lucide-react';
 const LeftPanel = (props) => {
   const { api } = props;
   const dockviewApi = useContext(DockviewApiContext);
+  const getRightReferenceId = () => {
+    const candidates = ['chat_panel', 'todo_panel'];
+    for (const id of candidates) {
+      if (dockviewApi?.getPanel(id)) return id;
+    }
+    if (dockviewApi?.getPanel('environment_list')) return 'environment_list';
+    return 'left_panel';
+  };
   
   console.log('LeftPanel props:', props);
   console.log('panel api:', api);
@@ -69,7 +77,7 @@ const LeftPanel = (props) => {
         component: 'TaskPanel',
         title: task.name,
         params: { task },
-        position: { referencePanel: 'left_panel', direction: 'right' },
+        position: { referencePanel: getRightReferenceId(), direction: 'left' },
       });
       panel?.focus();
     } catch (error) {
@@ -92,7 +100,7 @@ const LeftPanel = (props) => {
             component: 'EnvironmentPanel',
             title: 'Environment Panel',
             params: { environment: environment },
-            position: { referencePanel: 'left_panel', direction: 'right' },
+        position: { referencePanel: getRightReferenceId(), direction: 'left' },
           });
           setPopoverOpen(`env_${envId}`, false);
         } catch (error) {
@@ -110,7 +118,7 @@ const LeftPanel = (props) => {
             component: 'EnvironmentPanel',
             title: 'Pinned Environment',
             params: { environment: environment, isPinned: true },
-            position: { referencePanel: 'left_panel', direction: 'right' },
+        position: { referencePanel: getRightReferenceId(), direction: 'left' },
           });
           setPopoverOpen(`env_${envId}`, false);
         } catch (error) {

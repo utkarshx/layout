@@ -10,6 +10,14 @@ import { Eye, Pin, PanelLeft } from 'lucide-react';
 const EnvironmentListPanel = (props) => {
   const { api } = props;
   const dockviewApi = useContext(DockviewApiContext);
+  const getRightReferenceId = () => {
+    const candidates = ['chat_panel', 'todo_panel'];
+    for (const id of candidates) {
+      if (dockviewApi?.getPanel(id)) return id;
+    }
+    if (dockviewApi?.getPanel('environment_list')) return 'environment_list';
+    return 'left_panel';
+  };
   
   console.log('EnvironmentListPanel props:', props);
   console.log('panel api:', api);
@@ -212,7 +220,7 @@ const EnvironmentListPanel = (props) => {
                         component: 'EnvironmentPanel',
                         title: 'Environment Panel',
                         params: { environment: env },
-                        position: { referencePanel: 'left_panel', direction: 'right' },
+                        position: { referencePanel: getRightReferenceId(), direction: 'left' },
                       });
                       generalPanel = dockviewApi.getPanel('general_environment_panel');
                     } catch (e) {
@@ -232,7 +240,7 @@ const EnvironmentListPanel = (props) => {
                       component: 'EnvironmentPanel',
                       title: 'Pinned Environment',
                       params: { environment: env, isPinned: true },
-                      position: { referencePanel: 'left_panel', direction: 'right' },
+                      position: { referencePanel: getRightReferenceId(), direction: 'left' },
                     });
                     panel?.focus();
                   } catch (e) {
