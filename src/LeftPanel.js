@@ -19,18 +19,45 @@ const LeftPanel = (props) => {
 
   // Zustand store state and actions
   const {
-    environments,
     openPopovers,
     selectedTaskInEnv,
     taskSortBy,
     taskFilterBy,
+    taskOpenMode,
     setPopoverOpen,
     setSelectedTaskInEnv,
     setTaskSortBy,
     setTaskFilterBy,
     getEnvironmentById,
     getFilteredAndSortedTasks,
+    setTaskOpenMode,
   } = useAppStore();
+
+  const openTaskChatPanel = (task) => {
+    if (!task) return;
+    try {
+      // Ensure ChatPanel exists
+      let chatPanel = dockviewApi?.getPanel('chat_panel');
+      if (!chatPanel && dockviewApi) {
+        dockviewApi.addPanel({
+          id: 'chat_panel',
+          component: 'ChatPanel',
+          title: 'Chat',
+          position: { referencePanel: 'left_panel', direction: 'right' },
+        });
+        chatPanel = dockviewApi?.getPanel('chat_panel');
+      }
+      chatPanel?.focus();
+    } catch (e) {
+      console.error('Error ensuring chat panel exists:', e);
+    }
+    // Dispatch to ChatPanel via store
+    try {
+      useAppStore.getState().addPendingTaskChat(task);
+    } catch (e) {
+      console.error('Error dispatching pending task chat:', e);
+    }
+  };
 
   // Split Environment Panel Component
   const SplitEnvironmentPanel = ({ environment, envId }) => {
@@ -170,6 +197,25 @@ const LeftPanel = (props) => {
 
 {/* Right-side Controls */}
         <div className="flex items-center gap-2">
+            {/* Task open mode toggle */}
+            <div className="flex items-center gap-1 bg-gray-800 border border-gray-700 rounded p-0.5">
+              <Button
+                size="sm"
+                variant={taskOpenMode === 'preview' ? 'active' : 'outline'}
+                className="px-2 py-1 text-xs"
+                onClick={() => setTaskOpenMode('preview')}
+              >
+                Preview
+              </Button>
+              <Button
+                size="sm"
+                variant={taskOpenMode === 'chat' ? 'active' : 'outline'}
+                className="px-2 py-1 text-xs"
+                onClick={() => setTaskOpenMode('chat')}
+              >
+                Chat
+              </Button>
+            </div>
             {/* Environments Dropdown */}
            
 
@@ -281,7 +327,17 @@ const LeftPanel = (props) => {
                       {/* Task Content - Clickable area for task details */}
                       <Popover
                         open={openPopovers[`task_${task.id}`] || false}
-                        onOpenChange={(open) => setPopoverOpen(`task_${task.id}`, open)}
+                        onOpenChange={(open) => {
+                          if (taskOpenMode === 'preview') {
+                            setPopoverOpen(`task_${task.id}`, open);
+                          } else {
+                            if (open) {
+                              openTaskChatPanel(task);
+                            }
+                            // Ensure popover remains closed in chat mode
+                            setPopoverOpen(`task_${task.id}`, false);
+                          }
+                        }}
                       >
                         <PopoverTrigger asChild>
                           <div className="flex-1 flex items-center justify-between cursor-pointer">

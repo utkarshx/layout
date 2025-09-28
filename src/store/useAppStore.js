@@ -25,6 +25,13 @@ const useAppStore = create(
       taskSortBy: 'name',
       taskFilterBy: 'all',
       pinnedEnvironment: null,
+      // Global open mode state
+      taskOpenMode: 'preview', // 'preview' | 'chat'
+      environmentOpenMode: 'panel', // 'panel' | 'pinned'
+      // Pending open requests for ChatPanel
+      pendingTaskChats: [], // [{ id, task }]
+      // Currently selected environment for the general EnvironmentPanel
+      currentGeneralEnvironment: null,
 
       // Actions for environment management
       addEnvironment: (environment) =>
@@ -125,6 +132,31 @@ const useAppStore = create(
       clearPinnedEnvironment: () =>
         set(() => ({ pinnedEnvironment: null }), false, 'clearPinnedEnvironment'),
 
+      // Actions for global open modes
+      setTaskOpenMode: (mode) =>
+        set(() => ({ taskOpenMode: mode }), false, 'setTaskOpenMode'),
+
+      setEnvironmentOpenMode: (mode) =>
+        set(() => ({ environmentOpenMode: mode }), false, 'setEnvironmentOpenMode'),
+
+      // ChatPanel routing actions
+      addPendingTaskChat: (task) =>
+        set((state) => ({
+          pendingTaskChats: [
+            ...state.pendingTaskChats,
+            { id: `${task?.id || 'task'}_${Date.now()}`, task },
+          ],
+        }), false, 'addPendingTaskChat'),
+
+      removePendingTaskChat: (id) =>
+        set((state) => ({
+          pendingTaskChats: state.pendingTaskChats.filter((req) => req.id !== id),
+        }), false, 'removePendingTaskChat'),
+
+      // General EnvironmentPanel selection
+      setCurrentGeneralEnvironment: (environment) =>
+        set(() => ({ currentGeneralEnvironment: environment }), false, 'setCurrentGeneralEnvironment'),
+
       // Reset actions
       resetUIState: () =>
         set(() => ({
@@ -134,6 +166,10 @@ const useAppStore = create(
           taskSortBy: 'name',
           taskFilterBy: 'all',
           pinnedEnvironment: null,
+          taskOpenMode: 'preview',
+          environmentOpenMode: 'panel',
+          pendingTaskChats: [],
+          currentGeneralEnvironment: null,
         }), false, 'resetUIState'),
     }),
     {

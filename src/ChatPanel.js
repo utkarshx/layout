@@ -12,8 +12,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from './components/ui/drawer';
-import { Info, GitCompare, Menu, PanelLeft, X } from 'lucide-react';
-import TaskPanel from './TaskPanel';
+import { Info, GitCompare, Menu, PanelLeft, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import EnvironmentPanel from './EnvironmentPanel';
 import TaskDetailPanel from './TaskDetailPanel';
 import useAppStore from './store/useAppStore';
@@ -34,8 +33,7 @@ const ChatPanel = (props) => {
   ]);
   const [activeChatId, setActiveChatId] = useState('chat1');
   const [inputMessage, setInputMessage] = useState('');
-  const [taskPopoverOpen, setTaskPopoverOpen] = useState(false);
-  const [showEnvironmentInTaskPopover] = useState(false);
+  // removed unused taskPopover/extra states to keep UI minimal
   const [isRemoteTask, setIsRemoteTask] = useState(false);
   const [sendMode, setSendMode] = useState('interactive');
   const [envPopoverOpen, setEnvPopoverOpen] = useState(false);
@@ -43,14 +41,16 @@ const ChatPanel = (props) => {
   const [selectedEnvironment, setSelectedEnvironment] = useState(null);
   const [chatListOpen, setChatListOpen] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
-  const [taskViewMode, setTaskViewMode] = useState('chat'); // 'chat' or 'detail'
-  const [showTaskTabs, setShowTaskTabs] = useState(false);
+  // removed unused taskViewMode and showTaskTabs
   const [taskDrawerOpen, setTaskDrawerOpen] = useState(false);
   
-  // Get environments from Zustand store
-  const { environments } = useAppStore();
+  // Get environments and pending chat requests from Zustand store
+  const { environments, pendingTaskChats, removePendingTaskChat } = useAppStore();
   const messagesEndRef = useRef(null);
   const panelRef = useRef(null);
+  const tabsScrollRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
 
   const activeChat = chats.find(chat => chat.id === activeChatId);
 
@@ -61,6 +61,68 @@ const ChatPanel = (props) => {
   useEffect(() => {
     scrollToBottom();
   }, [activeChat?.messages]);
+
+  const updateTabScrollButtons = React.useCallback(() => {
+    const el = tabsScrollRef.current;
+    if (!el) return;
+    const { scrollLeft, clientWidth, scrollWidth } = el;
+    setCanScrollLeft(scrollLeft > 0);
+    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 1);
+  }, []);
+
+  useEffect(() => {
+    updateTabScrollButtons();
+    const el = tabsScrollRef.current;
+    if (!el) return;
+    const handleScroll = () => updateTabScrollButtons();
+    el.addEventListener('scroll', handleScroll);
+    window.addEventListener('resize', updateTabScrollButtons);
+    return () => {
+      el.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', updateTabScrollButtons);
+    };
+  }, [updateTabScrollButtons, chats.length]);
+
+  const scrollTabs = (direction) => {
+    const el = tabsScrollRef.current;
+    if (!el) return;
+    const amount = Math.round(el.clientWidth * 0.7);
+    el.scrollBy({ left: direction === 'left' ? -amount : amount, behavior: 'smooth' });
+  };
+
+  // Consume pending task chat requests: ensure ChatPanel shows a new tab per task
+  useEffect(() => {
+    if (!pendingTaskChats || pendingTaskChats.length === 0) return;
+    pendingTaskChats.forEach((req) => {
+      const task = req.task;
+      if (!task) return;
+      const env = environments.find(e => e.id === task.environmentId);
+      const newChatId = `task_${task.id}_${Date.now()}`;
+      const initialMessages = [
+        {
+          id: 1,
+          text: `Task loaded: ${task.name}`,
+          sender: 'system',
+          timestamp: new Date(),
+        },
+        {
+          id: 2,
+          text: `Status: ${task.status} • Priority: ${task.priority}${env ? ` • Environment: ${env.name}` : ''}`,
+          sender: 'system',
+          timestamp: new Date(),
+        },
+      ];
+      const newChat = {
+        id: newChatId,
+        title: task.name || `Task ${task.id}`,
+        type: 'task',
+        messages: initialMessages,
+      };
+      setChats((prev) => [...prev, newChat]);
+      setActiveChatId(newChatId);
+      removePendingTaskChat(req.id);
+    });
+  }, [pendingTaskChats, removePendingTaskChat, environments]);
 
   const handleSendMessage = () => {
     if (inputMessage.trim() === '' || !activeChat) return;
@@ -137,85 +199,10 @@ const ChatPanel = (props) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  // Split Environment Panel Component
-  const SplitEnvironmentPanel = ({ environment, task, showEnvironment }) => {
-    const [selectedEnv, setSelectedEnv] = useState(null);
-    return (
-      <div className="h-full flex">
-        {/* Environment Panel - Left Side */}
-        {selectedEnv && (
-          <div className='w-1/2' >
-            <DockviewApiContext.Provider value={dockviewApi}>
-              <EnvironmentPanel
-                params={{ environment: selectedEnv }}
-                api={{
-                  id: 'popover-env-panel',
-                  title: `${environment?.name || 'Environment'} - Environment`,
-                  group: { location: { type: 'popover' } },
-                  onTaskSelect: () => { } // Task selection handled differently in split view
-                }}
-              />
-            </DockviewApiContext.Provider>
-          </div>
-        )}
-
-        {/* Task Panel - Right Side */}
-
-        <div className={`${selectedEnv ? 'w-1/2' : 'w-full'} border-r border-gray-700`}>
-          <DockviewApiContext.Provider value={dockviewApi}>
-            <TaskPanel
-              params={{ task: task, environment: selectedEnv ? environment : undefined }}
-              api={{
-                id: 'popover-task-panel',
-                title: `${task?.name || 'Task'} - Task`,
-                group: { location: { type: 'popover' } },
-                onPanelOpen: () => setTaskPopoverOpen(false),
-                onEnvSelect:setSelectedEnv
-                
-              }}
-            />
-          </DockviewApiContext.Provider>
-        </div>
-
-      </div>
-      // <div className="h-full flex">
-      //   {/* Environment Panel - Left Side */}
-      //   {showEnvironment && (
-      //     <div className="w-1/2 border-r border-gray-700">
-      //       <DockviewApiContext.Provider value={dockviewApi}>
-      //         <EnvironmentPanel
-      //           params={{ environment: environment }}
-      //           api={{
-      //             id: 'popover-env-panel',
-      //             title: `${environment?.name || 'Environment'} - Environment`,
-      //             group: { location: { type: 'popover' } },
-      //             onTaskSelect: () => {} // Task selection handled differently in split view
-      //           }}
-      //         />
-      //       </DockviewApiContext.Provider>
-      //     </div>
-      //   )}
-
-      //   {/* Task Panel - Right Side */}
-      //   <div className={showEnvironment ? "w-1/2" : "w-full"}>
-      //     <DockviewApiContext.Provider value={dockviewApi}>
-      //       <TaskPanel
-      //         params={{ task: task, environment: showEnvironment ? environment : undefined }}
-      //         api={{
-      //           id: 'popover-task-panel',
-      //           title: `${task?.name || 'Task'} - Task`,
-      //           group: { location: { type: 'popover' } },
-      //           onPanelOpen: () => setTaskPopoverOpen(false)
-      //         }}
-      //       />
-      //     </DockviewApiContext.Provider>
-      //   </div>
-      // </div>
-    );
-  };
+  // removed unused SplitEnvironmentPanel helper
 
   return (
-    <div ref={panelRef} className="p-5 text-foreground bg-background h-[80%] overflow-hidden flex relative">
+    <div ref={panelRef} className="p-5 text-foreground bg-background h-full overflow-hidden flex relative">
       {/* Left Sidebar - Show when sidebar is enabled */}
       {showSidebar && (
         <div className="w-64 border-r border-border pr-4 mr-4 flex-shrink-0">
@@ -304,28 +291,62 @@ const ChatPanel = (props) => {
           </button>
         </div>
 
-        <div className={`flex gap-0.5 flex-1 ${showSidebar ? 'hidden' : ''}`}>
-          {chats.map((chat) => (
-            <Button
-              key={chat.id}
-              onClick={() => switchChat(chat.id)}
-              variant={chat.id === activeChatId ? "active" : "subtle"}
-              size="sm"
-              className="rounded-t-md rounded-b-none"
-            >
-              {chat.title}
-            </Button>
-          ))}
-          {/* Add New Chat Button */}
-          <Button
-            onClick={addNewChat}
-            variant="outline"
-            size="sm"
-            className="rounded-t-md rounded-b-none"
-          >
-            + New Chat
-          </Button>
-        </div>
+        {!showSidebar && (
+          <div className="flex-1">
+            <div className="relative h-9">
+              {/* Scrollable container without visible scrollbar */}
+              <div className="absolute inset-0 overflow-hidden">
+                <div ref={tabsScrollRef} className="h-full overflow-x-auto no-scrollbar">
+                  <div className="flex flex-row gap-0.5 w-max">
+                    {chats.map((chat) => (
+                      <Button
+                        key={chat.id}
+                        onClick={() => switchChat(chat.id)}
+                        variant={chat.id === activeChatId ? "active" : "subtle"}
+                        size="sm"
+                        className="rounded-t-md rounded-b-none"
+                      >
+                        {chat.title}
+                      </Button>
+                    ))}
+                    <Button
+                      onClick={addNewChat}
+                      variant="outline"
+                      size="sm"
+                      className="rounded-t-md rounded-b-none"
+                    >
+                      + New Chat
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Left/Right scroll buttons */}
+              {canScrollLeft && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-6 p-0"
+                  onClick={() => scrollTabs('left')}
+                  title="Scroll left"
+                >
+                  <ChevronLeft className="h-3.5 w-3.5" />
+                </Button>
+              )}
+              {canScrollRight && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="absolute right-0 top-1/2 -translate-y-1/2 h-6 w-6 p-0"
+                  onClick={() => scrollTabs('right')}
+                  title="Scroll right"
+                >
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
 
       </div>
 

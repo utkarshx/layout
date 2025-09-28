@@ -24,6 +24,9 @@ const EnvironmentListPanel = (props) => {
     selectedTaskInEnv,
     setPopoverOpen,
     setSelectedTaskInEnv,
+    environmentOpenMode,
+    setEnvironmentOpenMode,
+    setCurrentGeneralEnvironment,
   } = useAppStore();
 
   // Split Environment Panel Component
@@ -119,6 +122,25 @@ const EnvironmentListPanel = (props) => {
 
         {/* Right-side Controls */}
         <div className="flex items-center gap-2">
+            {/* Environment open mode toggle */}
+            <div className="flex items-center gap-1 bg-gray-800 border border-gray-700 rounded p-0.5">
+              <Button
+                size="sm"
+                variant={environmentOpenMode === 'panel' ? 'active' : 'outline'}
+                className="px-2 py-1 text-xs"
+                onClick={() => setEnvironmentOpenMode('panel')}
+              >
+                Environment Panel
+              </Button>
+              <Button
+                size="sm"
+                variant={environmentOpenMode === 'pinned' ? 'active' : 'outline'}
+                className="px-2 py-1 text-xs"
+                onClick={() => setEnvironmentOpenMode('pinned')}
+              >
+                Pinned Panel
+              </Button>
+            </div>
             {/* Tasks Dropdown */}
             <Popover>
               <PopoverTrigger asChild>
@@ -161,7 +183,44 @@ const EnvironmentListPanel = (props) => {
           <Popover
             key={env.id}
             open={openPopovers[`env_${env.id}`] || false}
-            onOpenChange={(open) => setPopoverOpen(`env_${env.id}`, open)}
+            onOpenChange={(open) => {
+              if (environmentOpenMode === 'panel') {
+                setPopoverOpen(`env_${env.id}`, open);
+              } else {
+                if (open) {
+                  // In pinned mode, prefer reusing the general environment panel if present
+                  const generalPanel = dockviewApi?.getPanel('general_environment_panel');
+                  if (generalPanel) {
+                    try {
+                      setCurrentGeneralEnvironment(env);
+                      generalPanel.focus();
+                    } catch (e) {
+                      console.error('Error focusing general environment panel:', e);
+                    }
+                  } else {
+                    // fallback to creating a pinned panel if no general panel exists
+                    const panelId = `pinned_environment_panel_${env.id}`;
+                    const existing = dockviewApi?.getPanel(panelId);
+                    if (existing) {
+                      existing.focus();
+                    } else {
+                      try {
+                        dockviewApi?.addPanel({
+                          id: panelId,
+                          component: 'EnvironmentPanel',
+                          title: 'Pinned Environment',
+                          params: { environment: env, isPinned: true },
+                          position: { referencePanel: 'left_panel', direction: 'right' },
+                        });
+                      } catch (error) {
+                        console.error('Error adding pinned environment panel:', error);
+                      }
+                    }
+                  }
+                }
+                setPopoverOpen(`env_${env.id}`, false);
+              }
+            }}
           >
             <PopoverTrigger asChild>
               <div className="p-2 px-3 my-1 bg-gray-800 rounded cursor-pointer border border-gray-700 hover:bg-gray-700 transition-colors">

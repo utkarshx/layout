@@ -35,12 +35,13 @@ const EnvironmentPanel = (props) => {
   // Get store data and actions
   const { 
     environments, 
-    pinnedEnvironment 
+    pinnedEnvironment,
+    currentGeneralEnvironment
   } = useAppStore();
   
   // State for current environment (can be different from initial if this is a general panel)
   const [currentEnvironment, setCurrentEnvironment] = useState(
-    isPinned ? pinnedEnvironment : initialEnvironment
+    isPinned ? pinnedEnvironment : (currentGeneralEnvironment || initialEnvironment)
   );
   
   // Use current environment or fallback to initial
@@ -52,6 +53,13 @@ const EnvironmentPanel = (props) => {
       setCurrentEnvironment(pinnedEnvironment);
     }
   }, [isPinned, pinnedEnvironment]);
+
+  // Update current environment when currentGeneralEnvironment changes (for general panel)
+  useEffect(() => {
+    if (!isPinned && currentGeneralEnvironment) {
+      setCurrentEnvironment(currentGeneralEnvironment);
+    }
+  }, [isPinned, currentGeneralEnvironment]);
   
   // State for managing nested panels
   const [nestedDockviewApi, setNestedDockviewApi] = useState(null);
