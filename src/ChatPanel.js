@@ -12,7 +12,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from './components/ui/drawer';
-import { Info, GitCompare, Menu, PanelLeft, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Info, GitCompare, Menu, PanelLeft, X, ChevronLeft, ChevronRight, Eye, Pin } from 'lucide-react';
 import EnvironmentPanel from './EnvironmentPanel';
 import TaskDetailPanel from './TaskDetailPanel';
 import useAppStore from './store/useAppStore';
@@ -44,7 +44,7 @@ const ChatPanel = (props) => {
   const [taskDrawerOpen, setTaskDrawerOpen] = useState(false);
   
   // Get environments and pending chat requests from Zustand store
-  const { environments, pendingTaskChats, removePendingTaskChat } = useAppStore();
+  const { environments, pendingTaskChats, removePendingTaskChat, environmentOpenMode, setEnvironmentOpenMode } = useAppStore();
   const messagesEndRef = useRef(null);
   const panelRef = useRef(null);
   const tabsScrollRef = useRef(null);
@@ -88,6 +88,52 @@ const ChatPanel = (props) => {
     if (!el) return;
     const amount = Math.round(el.clientWidth * 0.7);
     el.scrollBy({ left: direction === 'left' ? -amount : amount, behavior: 'smooth' });
+  };
+
+  // Helpers to open environment views based on selected mode
+  const openEnvironmentFromChat = () => {
+    if (!activeEnv) return;
+    const api = dockviewApi;
+    if (environmentOpenMode === 'preview') {
+      // handled by popover buttons below when preview is active
+      return;
+    }
+    if (environmentOpenMode === 'general') {
+      try {
+        let generalPanel = api?.getPanel('general_environment_panel');
+        if (!generalPanel && api) {
+          api.addPanel({
+            id: 'general_environment_panel',
+            component: 'EnvironmentPanel',
+            title: 'Environment Panel',
+            params: { environment: activeEnv },
+            position: { referencePanel: 'chat_panel', direction: 'right' },
+          });
+          generalPanel = api.getPanel('general_environment_panel');
+        }
+        // update global general env via store already used by EnvironmentPanel
+        useAppStore.getState().setCurrentGeneralEnvironment(activeEnv);
+        generalPanel?.focus();
+      } catch (e) {
+        console.error('Error opening general environment panel from chat:', e);
+      }
+      return;
+    }
+    if (environmentOpenMode === 'pinned') {
+      try {
+        const uniqueId = `pinned_environment_panel_${activeEnv.id}_${Date.now()}`;
+        const panel = api?.addPanel({
+          id: uniqueId,
+          component: 'EnvironmentPanel',
+          title: 'Pinned Environment',
+          params: { environment: activeEnv, isPinned: true },
+          position: { referencePanel: 'chat_panel', direction: 'right' },
+        });
+        panel?.focus();
+      } catch (e) {
+        console.error('Error opening pinned environment panel from chat:', e);
+      }
+    }
   };
 
   // Consume pending task chat requests: ensure ChatPanel shows a new tab per task
@@ -258,7 +304,7 @@ const ChatPanel = (props) => {
       {/* Chat Tabs */}
       <div className="flex items-center mb-3.75 border-b border-border pb-2.5">
         {/* Chat Control Buttons */}
-        <div className="flex items-center gap-1 mr-3">
+            <div className="flex items-center gap-1 mr-3">
           {/* Chat List Popover Button */}
           <Popover open={chatListOpen} onOpenChange={setChatListOpen}>
             <PopoverTrigger asChild>
@@ -360,6 +406,36 @@ const ChatPanel = (props) => {
             >
               + New Chat
             </Button>
+            {/* Environment open mode toggle within chat header */}
+            <div className="flex items-center gap-1 bg-gray-800 border border-gray-700 rounded p-0.5 ml-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className={`px-2 py-1 text-xs ${environmentOpenMode === 'preview' ? 'bg-gray-700 text-white border-gray-600' : 'bg-transparent text-gray-300 border-transparent hover:bg-gray-700'}`}
+              onClick={() => setEnvironmentOpenMode('preview')}
+              title="Preview"
+            >
+              <Eye className="h-4 w-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className={`px-2 py-1 text-xs ${environmentOpenMode === 'general' ? 'bg-gray-700 text-white border-gray-600' : 'bg-transparent text-gray-300 border-transparent hover:bg-gray-700'}`}
+              onClick={() => setEnvironmentOpenMode('general')}
+              title="Environment Panel"
+            >
+              <PanelLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className={`px-2 py-1 text-xs ${environmentOpenMode === 'pinned' ? 'bg-gray-700 text-white border-gray-600' : 'bg-transparent text-gray-300 border-transparent hover:bg-gray-700'}`}
+              onClick={() => setEnvironmentOpenMode('pinned')}
+              title="Pinned Panel"
+            >
+              <Pin className="h-4 w-4" />
+            </Button>
+            </div>
           </div>
         )}
 
@@ -456,8 +532,15 @@ const ChatPanel = (props) => {
               {activeChat?.isRemote && activeEnv && (
                 <>
                   <Popover open={envPopoverOpen && envViewMode === 'info'} onOpenChange={(open) => {
-                    if (open) setEnvViewMode('info');
-                    setEnvPopoverOpen(open);
+                    if (environmentOpenMode === 'preview') {
+                      if (open) setEnvViewMode('info');
+                      setEnvPopoverOpen(open);
+                    } else if (open) {
+                      // non-preview modes open panel instead
+                      setEnvPopoverOpen(false);
+                      setEnvViewMode('info');
+                      openEnvironmentFromChat();
+                    }
                   }}>
                     <PopoverTrigger asChild>
                       <button className="p-1.5 bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 hover:text-white border border-gray-600/50 hover:border-gray-500 rounded cursor-pointer transition-colors">
@@ -482,8 +565,14 @@ const ChatPanel = (props) => {
                   </Popover>
                   
                   <Popover open={envPopoverOpen && envViewMode === 'diff'} onOpenChange={(open) => {
-                    if (open) setEnvViewMode('diff');
-                    setEnvPopoverOpen(open);
+                    if (environmentOpenMode === 'preview') {
+                      if (open) setEnvViewMode('diff');
+                      setEnvPopoverOpen(open);
+                    } else if (open) {
+                      setEnvPopoverOpen(false);
+                      setEnvViewMode('diff');
+                      openEnvironmentFromChat();
+                    }
                   }}>
                     <PopoverTrigger asChild>
                       <button className="p-1.5 bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 hover:text-white border border-gray-600/50 hover:border-gray-500 rounded cursor-pointer transition-colors">
