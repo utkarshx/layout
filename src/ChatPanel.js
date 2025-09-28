@@ -96,6 +96,14 @@ const ChatPanel = (props) => {
     pendingTaskChats.forEach((req) => {
       const task = req.task;
       if (!task) return;
+      // If a task chat for this task already exists, focus it instead of creating a new one
+      const existing = chats.find((c) => c.type === 'task' && c.taskId === task.id);
+      if (existing) {
+        setActiveChatId(existing.id);
+        removePendingTaskChat(req.id);
+        return;
+      }
+
       const env = environments.find(e => e.id === task.environmentId);
       const newChatId = `task_${task.id}_${Date.now()}`;
       const initialMessages = [
@@ -116,13 +124,14 @@ const ChatPanel = (props) => {
         id: newChatId,
         title: task.name || `Task ${task.id}`,
         type: 'task',
+        taskId: task.id,
         messages: initialMessages,
       };
       setChats((prev) => [...prev, newChat]);
       setActiveChatId(newChatId);
       removePendingTaskChat(req.id);
     });
-  }, [pendingTaskChats, removePendingTaskChat, environments]);
+  }, [pendingTaskChats, removePendingTaskChat, environments, chats]);
 
   const handleSendMessage = () => {
     if (inputMessage.trim() === '' || !activeChat) return;
@@ -292,10 +301,10 @@ const ChatPanel = (props) => {
         </div>
 
         {!showSidebar && (
-          <div className="flex-1">
-            <div className="relative h-9">
-              {/* Scrollable container without visible scrollbar */}
-              <div className="absolute inset-0 overflow-hidden">
+          <div className="flex-1 flex items-center gap-2">
+            <div className="relative h-9 flex-1">
+              {/* Scrollable container without visible scrollbar; add side padding under overlay buttons */}
+              <div className="absolute inset-0 overflow-hidden px-6">
                 <div ref={tabsScrollRef} className="h-full overflow-x-auto no-scrollbar">
                   <div className="flex flex-row gap-0.5 w-max">
                     {chats.map((chat) => (
@@ -309,14 +318,6 @@ const ChatPanel = (props) => {
                         {chat.title}
                       </Button>
                     ))}
-                    <Button
-                      onClick={addNewChat}
-                      variant="outline"
-                      size="sm"
-                      className="rounded-t-md rounded-b-none"
-                    >
-                      + New Chat
-                    </Button>
                   </div>
                 </div>
               </div>
@@ -345,6 +346,15 @@ const ChatPanel = (props) => {
                 </Button>
               )}
             </div>
+            {/* New Chat button sits outside the scroll area on the right */}
+            <Button
+              onClick={addNewChat}
+              variant="outline"
+              size="sm"
+              className="rounded-md"
+            >
+              + New Chat
+            </Button>
           </div>
         )}
 
