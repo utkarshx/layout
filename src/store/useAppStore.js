@@ -26,7 +26,7 @@ const useAppStore = create(
       taskFilterBy: 'all',
       pinnedEnvironment: null,
       // Global open mode state
-      taskOpenMode: 'preview', // 'preview' | 'chat'
+      taskOpenMode: 'preview', // 'preview' | 'chat' | 'panel'
       environmentOpenMode: 'preview', // 'preview' | 'pinned' | 'general'
       // Pending open requests for ChatPanel
       pendingTaskChats: [], // [{ id, task }]

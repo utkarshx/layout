@@ -5,6 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from './components/ui/popover
 import EnvironmentPanel from './EnvironmentPanel';
 import TaskPanel from './TaskPanel';
 import useAppStore from './store/useAppStore';
+import { Eye, SquareArrowOutUpRight, MessageSquare } from 'lucide-react';
 
 const LeftPanel = (props) => {
   const { api } = props;
@@ -56,6 +57,23 @@ const LeftPanel = (props) => {
       useAppStore.getState().addPendingTaskChat(task);
     } catch (e) {
       console.error('Error dispatching pending task chat:', e);
+    }
+  };
+
+  const openTaskSeparatePanel = (task) => {
+    if (!task || !dockviewApi) return;
+    const panelId = `task_panel_${task.id}_${Date.now()}`;
+    try {
+      const panel = dockviewApi.addPanel({
+        id: panelId,
+        component: 'TaskPanel',
+        title: task.name,
+        params: { task },
+        position: { referencePanel: 'left_panel', direction: 'right' },
+      });
+      panel?.focus();
+    } catch (error) {
+      console.error('Error adding task panel:', error);
     }
   };
 
@@ -201,19 +219,30 @@ const LeftPanel = (props) => {
             <div className="flex items-center gap-1 bg-gray-800 border border-gray-700 rounded p-0.5">
               <Button
                 size="sm"
-                variant={taskOpenMode === 'preview' ? 'active' : 'outline'}
-                className="px-2 py-1 text-xs"
+                variant="outline"
+                className={`px-2 py-1 text-xs ${taskOpenMode === 'preview' ? 'bg-gray-700 text-white border-gray-600' : 'bg-transparent text-gray-300 border-transparent hover:bg-gray-700'}`}
                 onClick={() => setTaskOpenMode('preview')}
+                title="Preview"
               >
-                Preview
+                <Eye className="h-4 w-4" />
               </Button>
               <Button
                 size="sm"
-                variant={taskOpenMode === 'chat' ? 'active' : 'outline'}
-                className="px-2 py-1 text-xs"
-                onClick={() => setTaskOpenMode('chat')}
+                variant="outline"
+                className={`px-2 py-1 text-xs ${taskOpenMode === 'panel' ? 'bg-gray-700 text-white border-gray-600' : 'bg-transparent text-gray-300 border-transparent hover:bg-gray-700'}`}
+                onClick={() => setTaskOpenMode('panel')}
+                title="Task Panel"
               >
-                Chat
+                <SquareArrowOutUpRight className="h-4 w-4" />
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className={`px-2 py-1 text-xs ${taskOpenMode === 'chat' ? 'bg-gray-700 text-white border-gray-600' : 'bg-transparent text-gray-300 border-transparent hover:bg-gray-700'}`}
+                onClick={() => setTaskOpenMode('chat')}
+                title="Chat"
+              >
+                <MessageSquare className="h-4 w-4" />
               </Button>
             </div>
             {/* Environments Dropdown */}
@@ -330,11 +359,15 @@ const LeftPanel = (props) => {
                         onOpenChange={(open) => {
                           if (taskOpenMode === 'preview') {
                             setPopoverOpen(`task_${task.id}`, open);
-                          } else {
+                          } else if (taskOpenMode === 'chat') {
                             if (open) {
                               openTaskChatPanel(task);
                             }
-                            // Ensure popover remains closed in chat mode
+                            setPopoverOpen(`task_${task.id}`, false);
+                          } else if (taskOpenMode === 'panel') {
+                            if (open) {
+                              openTaskSeparatePanel(task);
+                            }
                             setPopoverOpen(`task_${task.id}`, false);
                           }
                         }}
