@@ -16,9 +16,10 @@ import '@xyflow/react/dist/style.css';
 import useAppStore from './store/useAppStore';
 import { Button } from './components/ui/button';
 
-// Custom Task Node Component
+// Custom Task Node Component (can host step subflow)
 const TaskNode = ({ id, data, selected }) => {
   const { task } = data || {};
+  const onAddStep = data?.onAddStep;
   const updateTask = useAppStore((s) => s.updateTask);
 
   const isCompleted = task?.status === 'completed';
@@ -31,7 +32,7 @@ const TaskNode = ({ id, data, selected }) => {
   };
 
   return (
-    <div className={`relative rounded-md border ${selected ? 'border-blue-400' : 'border-gray-600'} bg-gray-800 text-white px-3 py-3 w-56 shadow`}> 
+    <div className={`relative rounded-md border ${selected ? 'border-blue-400' : 'border-gray-600'} bg-gray-800 text-white w-full h-full shadow`}> 
       {/* Top button */}
       <button
         onClick={onStart}
@@ -44,10 +45,10 @@ const TaskNode = ({ id, data, selected }) => {
         {isCompleted ? 'Completed' : 'Start'}
       </button>
 
-      <div className="text-sm font-semibold truncate" title={task?.name}>
+      <div className="px-3 pt-3 text-sm font-semibold truncate" title={task?.name}>
         {task?.name}
       </div>
-      <div className="mt-2 text-xs flex items-center gap-2">
+      <div className="px-3 mt-2 text-xs flex items-center gap-2">
         <span className={`px-1.5 py-0.5 rounded border ${
           isCompleted ? 'bg-green-800/60 border-green-700 text-green-200' : task?.status === 'in-progress' ? 'bg-yellow-800/60 border-yellow-700 text-yellow-200' : 'bg-gray-700 border-gray-600 text-gray-200'
         }`}>
@@ -59,6 +60,17 @@ const TaskNode = ({ id, data, selected }) => {
           </span>
         )}
       </div>
+
+      {/* Add Step control */}
+      {onAddStep && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onAddStep(task?.id); }}
+          className="absolute bottom-1 right-1 text-[10px] px-1.5 py-0.5 rounded border bg-gray-700 border-gray-600 hover:bg-gray-600"
+          title="Add Step"
+        >
+          + Step
+        </button>
+      )}
 
       {/* Optional handles for future connections */}
       <Handle type="target" position={Position.Top} />
@@ -101,7 +113,20 @@ const EnvironmentNode = ({ id, data, selected }) => {
   );
 };
 
-const nodeTypes = { taskNode: TaskNode, environmentNode: EnvironmentNode };
+// Step Node Component (child of task)
+const StepNode = ({ data, selected }) => {
+  const { label, status } = data || {};
+  return (
+    <div className={`rounded-md border ${selected ? 'border-blue-400' : 'border-gray-600'} bg-gray-700 text-white px-2 py-2 w-full h-full`}> 
+      <div className="text-[11px] font-medium truncate" title={label}>{label || 'Step'}</div>
+      {status && (
+        <div className="mt-1 text-[10px] opacity-80">{status}</div>
+      )}
+    </div>
+  );
+};
+
+const nodeTypes = { taskNode: TaskNode, environmentNode: EnvironmentNode, stepNode: StepNode };
 
 const generateInitialPositions = (tasks) => {
   // Lay out nodes in a simple grid
@@ -158,6 +183,7 @@ const TaskFlowPanel = () => {
         parentId: t.environmentId,
         extent: 'parent',
         position: { x: childOffset.x + col * childXGap, y: childOffset.y + row * childYGap },
+        style: { width: 260, height: 180 },
         data: { task: t },
       };
     });
@@ -165,7 +191,7 @@ const TaskFlowPanel = () => {
     return [...envNodes, ...taskNodes];
   });
 
-  // Keep nodes in sync with environments and tasks while preserving positions
+  // Keep nodes in sync with environments and tasks while preserving positions (and keep existing steps)
   useEffect(() => {
     setNodes((existing) => {
       const byId = new Map(existing.map((n) => [n.id, n]));
@@ -198,7 +224,7 @@ const TaskFlowPanel = () => {
         const current = byId.get(t.id);
         if (current) {
           // Ensure parentId and data are up to date, keep position
-          return { ...current, parentId: t.environmentId, extent: 'parent', data: { task: t } };
+          return { ...current, parentId: t.environmentId, extent: 'parent', data: { task: t }, style: current.style || { width: 260, height: 180 } };
         }
         const idx = (taskIndexByEnv[t.environmentId] = (taskIndexByEnv[t.environmentId] || 0) + 1) - 1;
         const col = idx % 2;
@@ -209,11 +235,38 @@ const TaskFlowPanel = () => {
           parentId: t.environmentId,
           extent: 'parent',
           position: { x: childOffset.x + col * childXGap, y: childOffset.y + row * childYGap },
+          style: { width: 260, height: 180 },
           data: { task: t },
         };
       });
 
-      return [...envNodes, ...taskNodes];
+      // 3) Keep existing step nodes that belong to existing tasks
+      const existingTaskIds = new Set(tasks.map((t) => t.id));
+      const stepNodes = existing.filter((n) => n.type === 'stepNode' && existingTaskIds.has(n.parentId));
+
+      // Inject onAddStep callback into task node data
+      const taskNodesWithActions = taskNodes.map((n) => ({ ...n, data: { ...n.data, onAddStep: (taskId) => {
+        setNodes((nds) => {
+          // count existing steps for grid placement
+          const stepsForTask = nds.filter((x) => x.type === 'stepNode' && x.parentId === taskId);
+          const idx = stepsForTask.length;
+          const col = idx % 2;
+          const row = Math.floor(idx / 2);
+          const newStepId = `step_${taskId}_${Date.now()}`;
+          const newStep = {
+            id: newStepId,
+            type: 'stepNode',
+            parentId: taskId,
+            extent: 'parent',
+            position: { x: 16 + col * 120, y: 64 + row * 80 },
+            style: { width: 108, height: 56 },
+            data: { label: `Step ${idx + 1}`, status: 'pending' },
+          };
+          return [...nds, newStep];
+        });
+      } } }));
+
+      return [...envNodes, ...taskNodesWithActions, ...stepNodes];
     });
   }, [environments, tasks]);
 
