@@ -9,6 +9,8 @@ import {
   applyEdgeChanges,
   Handle,
   Position,
+  NodeResizer,
+  useUpdateNodeInternals,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import useAppStore from './store/useAppStore';
@@ -65,7 +67,41 @@ const TaskNode = ({ id, data, selected }) => {
   );
 };
 
-const nodeTypes = { taskNode: TaskNode };
+// Environment Node Component (group parent for subflows)
+const EnvironmentNode = ({ id, data, selected }) => {
+  const { environment, taskCount } = data || {};
+  const updateNodeInternals = useUpdateNodeInternals();
+  const requestUpdate = useCallback(() => {
+    requestAnimationFrame(() => {
+      try {
+        updateNodeInternals(id);
+      } catch {}
+    });
+  }, [id, updateNodeInternals]);
+  return (
+    <div
+      className={`relative rounded-md border ${selected ? 'border-blue-400' : 'border-gray-600'} bg-gray-900/70 text-white w-full h-full`}
+      style={{ boxSizing: 'border-box', contain: 'layout paint size', willChange: 'width, height' }}
+    >
+      <NodeResizer
+        isVisible={selected}
+        minWidth={360}
+        minHeight={220}
+        handleStyle={{ borderRadius: 2 }}
+        onResizeStart={requestUpdate}
+        onResize={requestUpdate}
+        onResizeEnd={requestUpdate}
+      />
+      <div className="px-2 py-1 text-xs border-b border-gray-700 bg-gray-800/80 flex items-center justify-between">
+        <span className="font-semibold truncate" title={environment?.name}>{environment?.name || 'Environment'}</span>
+        <span className="text-[10px] opacity-80">{taskCount ?? 0} tasks</span>
+      </div>
+      {/* Children task nodes render inside */}
+    </div>
+  );
+};
+
+const nodeTypes = { taskNode: TaskNode, environmentNode: EnvironmentNode };
 
 const generateInitialPositions = (tasks) => {
   // Lay out nodes in a simple grid
@@ -83,42 +119,103 @@ const generateInitialPositions = (tasks) => {
 
 const TaskFlowPanel = () => {
   const tasks = useAppStore((s) => s.tasks);
+  const environments = useAppStore((s) => s.environments);
   const addTask = useAppStore((s) => s.addTask);
 
   const [edges, setEdges] = useState([]);
   const [nodes, setNodes] = useState(() => {
-    const positions = generateInitialPositions(tasks);
-    return tasks.map((t) => ({
-      id: t.id,
-      type: 'taskNode',
-      position: positions[t.id] || { x: 0, y: 0 },
-      data: { task: t },
+    // Initial layout: grid environments, tasks inside each env
+    const envColCount = 2;
+    const envXGap = 560;
+    const envYGap = 360;
+    const envPositions = {};
+    environments.forEach((env, idx) => {
+      const col = idx % envColCount;
+      const row = Math.floor(idx / envColCount);
+      envPositions[env.id] = { x: col * envXGap, y: row * envYGap };
+    });
+
+    const envNodes = environments.map((env) => ({
+      id: env.id,
+      type: 'environmentNode',
+      position: envPositions[env.id] || { x: 0, y: 0 },
+      data: { environment: env, taskCount: tasks.filter((t) => t.environmentId === env.id).length },
+      style: { width: 520, height: 300 },
     }));
+
+    // Child task positions relative to parent area
+    const childOffset = { x: 12, y: 24 };
+    const childXGap = 240;
+    const childYGap = 140;
+    const taskIndexByEnv = {};
+    const taskNodes = tasks.map((t) => {
+      const idx = (taskIndexByEnv[t.environmentId] = (taskIndexByEnv[t.environmentId] || 0) + 1) - 1;
+      const col = idx % 2;
+      const row = Math.floor(idx / 2);
+      return {
+        id: t.id,
+        type: 'taskNode',
+        parentId: t.environmentId,
+        extent: 'parent',
+        position: { x: childOffset.x + col * childXGap, y: childOffset.y + row * childYGap },
+        data: { task: t },
+      };
+    });
+
+    return [...envNodes, ...taskNodes];
   });
 
-  // Keep node data in sync with tasks while preserving positions and selection
+  // Keep nodes in sync with environments and tasks while preserving positions
   useEffect(() => {
     setNodes((existing) => {
       const byId = new Map(existing.map((n) => [n.id, n]));
-      const next = tasks.map((t, idx) => {
+
+      // 1) Environment parent nodes first
+      const envNodes = environments.map((env, idx) => {
+        const current = byId.get(env.id);
+        const taskCount = tasks.filter((t) => t.environmentId === env.id).length;
+        if (current) {
+          return { ...current, type: 'environmentNode', data: { environment: env, taskCount } };
+        }
+        // new environment → place next to others
+        const col = idx % 2;
+        const row = Math.floor(idx / 2);
+        return {
+          id: env.id,
+          type: 'environmentNode',
+          position: { x: col * 560, y: row * 360 },
+          data: { environment: env, taskCount },
+          style: { width: 520, height: 300 },
+        };
+      });
+
+      // 2) Task child nodes
+      const childOffset = { x: 12, y: 24 };
+      const childXGap = 240;
+      const childYGap = 140;
+      const taskIndexByEnv = {};
+      const taskNodes = tasks.map((t) => {
         const current = byId.get(t.id);
         if (current) {
-          return { ...current, data: { task: t } };
+          // Ensure parentId and data are up to date, keep position
+          return { ...current, parentId: t.environmentId, extent: 'parent', data: { task: t } };
         }
-        // new task → add new node with a basic grid position
-        const col = idx % 3;
-        const row = Math.floor(idx / 3);
+        const idx = (taskIndexByEnv[t.environmentId] = (taskIndexByEnv[t.environmentId] || 0) + 1) - 1;
+        const col = idx % 2;
+        const row = Math.floor(idx / 2);
         return {
           id: t.id,
           type: 'taskNode',
-          position: { x: col * 240, y: row * 140 },
+          parentId: t.environmentId,
+          extent: 'parent',
+          position: { x: childOffset.x + col * childXGap, y: childOffset.y + row * childYGap },
           data: { task: t },
         };
       });
-      // Remove nodes whose tasks were deleted
-      return next;
+
+      return [...envNodes, ...taskNodes];
     });
-  }, [tasks]);
+  }, [environments, tasks]);
 
   const onNodesChange = useCallback((changes) => {
     setNodes((nds) => applyNodeChanges(changes, nds));
