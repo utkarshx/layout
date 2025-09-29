@@ -21,6 +21,14 @@ const TaskNode = ({ id, data, selected }) => {
   const { task } = data || {};
   const onAddStep = data?.onAddStep;
   const updateTask = useAppStore((s) => s.updateTask);
+  const updateNodeInternals = useUpdateNodeInternals();
+  const requestUpdate = useCallback(() => {
+    requestAnimationFrame(() => {
+      try {
+        updateNodeInternals(id);
+      } catch {}
+    });
+  }, [id, updateNodeInternals]);
 
   const isCompleted = task?.status === 'completed';
 
@@ -33,6 +41,15 @@ const TaskNode = ({ id, data, selected }) => {
 
   return (
     <div className={`relative rounded-md border ${selected ? 'border-blue-400' : 'border-gray-600'} bg-gray-800 text-white w-full h-full shadow`}> 
+      <NodeResizer
+        isVisible={selected}
+        minWidth={200}
+        minHeight={120}
+        handleStyle={{ borderRadius: 2 }}
+        onResizeStart={requestUpdate}
+        onResize={requestUpdate}
+        onResizeEnd={requestUpdate}
+      />
       {/* Top button */}
       <button
         onClick={onStart}
@@ -117,11 +134,14 @@ const EnvironmentNode = ({ id, data, selected }) => {
 const StepNode = ({ data, selected }) => {
   const { label, status } = data || {};
   return (
-    <div className={`rounded-md border ${selected ? 'border-blue-400' : 'border-gray-600'} bg-gray-700 text-white px-2 py-2 w-full h-full`}> 
+    <div className={`relative rounded-md border ${selected ? 'border-blue-400' : 'border-gray-600'} bg-gray-700 text-white px-2 py-2 w-full h-full`}> 
       <div className="text-[11px] font-medium truncate" title={label}>{label || 'Step'}</div>
       {status && (
         <div className="mt-1 text-[10px] opacity-80">{status}</div>
       )}
+      {/* Handles for connecting steps */}
+      <Handle type="target" position={Position.Left} />
+      <Handle type="source" position={Position.Right} />
     </div>
   );
 };
