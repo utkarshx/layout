@@ -48,6 +48,17 @@ const TaskItemView = (props) => {
 
   return (
     <NodeViewWrapper as="li" data-type="taskItem" data-checked={checked ? 'true' : 'false'} className="ti-task-item">
+      <label contentEditable={false} className="ti-checkbox">
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={() => updateAttributes({ checked: !checked })}
+        />
+      </label>
+      <div className="ti-content">
+        <NodeViewContent as="div" />
+      </div>
+
       <button
         type="button"
         className="ti-plus"
@@ -62,17 +73,6 @@ const TaskItemView = (props) => {
       >
         +
       </button>
-
-      <label contentEditable={false} className="ti-checkbox">
-        <input
-          type="checkbox"
-          checked={checked}
-          onChange={() => updateAttributes({ checked: !checked })}
-        />
-      </label>
-      <div className="ti-content">
-        <NodeViewContent as="div" />
-      </div>
 
       {showAdder && (
         <div className="ti-adder-popover" contentEditable={false}>
