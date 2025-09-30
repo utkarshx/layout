@@ -6,6 +6,7 @@ import TaskList from '@tiptap/extension-task-list';
 import TaskItemWithPlus from './extensions/TaskItemWithPlus';
 import { Button } from './components/ui/button';
 import { CheckSquare } from 'lucide-react';
+import Highlight from '@tiptap/extension-highlight';
 
 const INITIAL_CONTENT = `<ul data-type="taskList">
   <li data-type="taskItem" data-checked="false"><p>What is this code about</p></li>
@@ -17,7 +18,7 @@ const TodoPanel = () => {
   const [content, setContent] = useState(INITIAL_CONTENT);
 
   const editor = useEditor({
-    extensions: [StarterKit, TaskList, TaskItemWithPlus],
+    extensions: [StarterKit, TaskList, TaskItemWithPlus, Highlight],
     content,
     editorProps: {
       attributes: {
@@ -44,7 +45,101 @@ const TodoPanel = () => {
 
       {editor && (
         <div className="p-3 border-b border-gray-700 bg-gray-800">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Structure/blocks */}
+            <Button
+              onClick={() => editor.chain().focus().setParagraph().run()}
+              variant="outline"
+              size="sm"
+              className={`${editor.isActive('paragraph') ? 'bg-blue-600 border-blue-500 text-white' : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'}`}
+              aria-label="Normal text"
+            >
+              Normal
+            </Button>
+            <Button
+              onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+              variant="outline"
+              size="sm"
+              className={`${editor.isActive('heading', { level: 1 }) ? 'bg-blue-600 border-blue-500 text-white' : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'}`}
+              aria-label="Heading 1"
+            >
+              H1
+            </Button>
+            <Button
+              onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+              variant="outline"
+              size="sm"
+              className={`${editor.isActive('heading', { level: 2 }) ? 'bg-blue-600 border-blue-500 text-white' : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'}`}
+              aria-label="Heading 2"
+            >
+              H2
+            </Button>
+            <Button
+              onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+              variant="outline"
+              size="sm"
+              className={`${editor.isActive('heading', { level: 3 }) ? 'bg-blue-600 border-blue-500 text-white' : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'}`}
+              aria-label="Heading 3"
+            >
+              H3
+            </Button>
+
+            <div className="w-px h-6 bg-gray-700 mx-1" />
+
+            {/* Inline formatting */}
+            <Button
+              onClick={() => editor.chain().focus().toggleBold().run()}
+              variant="outline"
+              size="sm"
+              className={`${editor.isActive('bold') ? 'bg-blue-600 border-blue-500 text-white' : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'}`}
+              aria-label="Bold"
+            >
+              Bold
+            </Button>
+            <Button
+              onClick={() => editor.chain().focus().toggleItalic().run()}
+              variant="outline"
+              size="sm"
+              className={`${editor.isActive('italic') ? 'bg-blue-600 border-blue-500 text-white' : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'}`}
+              aria-label="Italic"
+            >
+              Italic
+            </Button>
+            <Button
+              onClick={() => editor.chain().focus().toggleStrike().run()}
+              variant="outline"
+              size="sm"
+              className={`${editor.isActive('strike') ? 'bg-blue-600 border-blue-500 text-white' : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'}`}
+              aria-label="Strikethrough"
+            >
+              Strike
+            </Button>
+            <Button
+              onClick={() => editor.chain().focus().toggleHighlight().run()}
+              variant="outline"
+              size="sm"
+              className={`${editor.isActive('highlight') ? 'bg-blue-600 border-blue-500 text-white' : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'}`}
+              aria-label="Highlight"
+            >
+              Highlight
+            </Button>
+
+            <div className="w-px h-6 bg-gray-700 mx-1" />
+
+            {/* Code block */}
+            <Button
+              onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+              variant="outline"
+              size="sm"
+              className={`${editor.isActive('codeBlock') ? 'bg-blue-600 border-blue-500 text-white' : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'}`}
+              aria-label="Code block"
+            >
+              Code Block
+            </Button>
+
+            <div className="w-px h-6 bg-gray-700 mx-1" />
+
+            {/* Task list */}
             <Button
               onClick={toggleTaskList}
               variant="outline"
@@ -54,6 +149,7 @@ const TodoPanel = () => {
               <CheckSquare className="h-4 w-4 mr-1" />
               Task List
             </Button>
+
             <div className="text-xs text-gray-400 ml-auto">Type [ ] or [x] to create tasks</div>
           </div>
         </div>

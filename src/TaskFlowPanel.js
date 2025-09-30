@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import {
   ReactFlow,
   Background,
@@ -14,7 +14,11 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import useAppStore from './store/useAppStore';
-import { Button } from './components/ui/button';
+// import { Button } from './components/ui/button';
+import { DockviewApiContext } from './App';
+import EnvironmentPanel from './EnvironmentPanel';
+import TaskPanel from './TaskPanel';
+import { Popover, PopoverContent, PopoverTrigger } from './components/ui/popover';
 
 // Custom Task Node Component (can host step subflow)
 const TaskNode = ({ id, data, selected }) => {
@@ -22,6 +26,7 @@ const TaskNode = ({ id, data, selected }) => {
   const onAddStep = data?.onAddStep;
   const updateTask = useAppStore((s) => s.updateTask);
   const updateNodeInternals = useUpdateNodeInternals();
+  const dockviewApi = useContext(DockviewApiContext);
   const requestUpdate = useCallback(() => {
     requestAnimationFrame(() => {
       try {
@@ -38,6 +43,8 @@ const TaskNode = ({ id, data, selected }) => {
       updateTask(task.id, { status: 'completed' });
     }
   };
+
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   return (
     <div className={`relative rounded-md border ${selected ? 'border-blue-400' : 'border-gray-600'} bg-gray-800 text-white w-full h-full shadow`}> 
@@ -61,6 +68,61 @@ const TaskNode = ({ id, data, selected }) => {
       >
         {isCompleted ? 'Completed' : 'Start'}
       </button>
+      {/* View Task control (top-right) */}
+      {(() => {
+        const mode = data?.openMode || 'normal';
+        if (mode === 'preview') {
+          return (
+            <Popover open={previewOpen} onOpenChange={setPreviewOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setPreviewOpen(true); }}
+                  className="absolute top-1 right-1 text-[10px] px-1.5 py-0.5 rounded border bg-gray-700 border-gray-600 hover:bg-gray-600"
+                  title="View Task"
+                >
+                  View
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[800px] h-screen p-0 bg-gray-900 border-gray-700" side="left" align="center">
+                <div className="h-full">
+                  <DockviewApiContext.Provider value={dockviewApi}>
+                    <TaskPanel 
+                      params={{ task }}
+                      api={{ 
+                        id: 'popover-task-panel',
+                        title: `${task?.name || 'Task'} - Task`,
+                        group: { location: { type: 'popover' } },
+                        onPanelOpen: () => setPreviewOpen(false)
+                      }}
+                    />
+                  </DockviewApiContext.Provider>
+                </div>
+              </PopoverContent>
+            </Popover>
+          );
+        }
+        // normal / pinned behave the same for tasks as standard tabs
+        return (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!dockviewApi || !task) return;
+              try {
+                dockviewApi.addPanel({
+                  id: `task_panel_${task.id}_${Date.now()}`,
+                  component: 'TaskPanel',
+                  title: task.name || 'Task',
+                  params: { task },
+                });
+              } catch {}
+            }}
+            className="absolute top-1 right-1 text-[10px] px-1.5 py-0.5 rounded border bg-gray-700 border-gray-600 hover:bg-gray-600"
+            title="View Task"
+          >
+            View
+          </button>
+        );
+      })()}
 
       <div className="px-3 pt-3 text-sm font-semibold truncate" title={task?.name}>
         {task?.name}
@@ -89,6 +151,8 @@ const TaskNode = ({ id, data, selected }) => {
         </button>
       )}
 
+      
+
       {/* Optional handles for future connections */}
       <Handle type="target" position={Position.Top} />
       <Handle type="source" position={Position.Bottom} />
@@ -100,6 +164,8 @@ const TaskNode = ({ id, data, selected }) => {
 const EnvironmentNode = ({ id, data, selected }) => {
   const { environment, taskCount } = data || {};
   const updateNodeInternals = useUpdateNodeInternals();
+  const dockviewApi = useContext(DockviewApiContext);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const requestUpdate = useCallback(() => {
     requestAnimationFrame(() => {
       try {
@@ -121,51 +187,126 @@ const EnvironmentNode = ({ id, data, selected }) => {
         onResize={requestUpdate}
         onResizeEnd={requestUpdate}
       />
-      <div className="px-2 py-1 text-xs border-b border-gray-700 bg-gray-800/80 flex items-center justify-between">
+      <div className="px-2 py-1 text-xs border-b border-gray-700 bg-gray-800/80 flex items-center justify-between pr-10">
         <span className="font-semibold truncate" title={environment?.name}>{environment?.name || 'Environment'}</span>
         <span className="text-[10px] opacity-80">{taskCount ?? 0} tasks</span>
       </div>
+      {/* View Environment (top-right) */}
+      {(() => {
+        const mode = data?.openMode || 'normal';
+        if (mode === 'preview') {
+          return (
+            <Popover open={previewOpen} onOpenChange={setPreviewOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setPreviewOpen(true); }}
+                  className="absolute top-1 right-1 text-[10px] px-1.5 py-0.5 rounded border bg-gray-700 border-gray-600 hover:bg-gray-700"
+                  title="View Environment"
+                >
+                  View
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[800px] h-screen p-0 bg-gray-900 border-gray-700" side="left" align="center">
+                <div className="h-full">
+                  <DockviewApiContext.Provider value={dockviewApi}>
+                    <EnvironmentPanel 
+                      params={{ environment }}
+                      api={{ 
+                        id: 'popover-env-panel',
+                        title: `${environment?.name || 'Environment'} - Environment`,
+                        group: { location: { type: 'popover' } },
+                        onPanelOpen: () => setPreviewOpen(false)
+                      }}
+                    />
+                  </DockviewApiContext.Provider>
+                </div>
+              </PopoverContent>
+            </Popover>
+          );
+        }
+        // pinned / normal: open corresponding docked panels only
+        return (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!dockviewApi || !environment) return;
+              try {
+                if (mode === 'pinned') {
+                  dockviewApi.addPanel({
+                    id: `pinned_environment_panel`,
+                    component: 'EnvironmentPanel',
+                    title: 'Pinned Environment',
+                    params: { environment, isPinned: true },
+                  });
+                } else {
+                  dockviewApi.addPanel({
+                    id: `general_environment_panel`,
+                    component: 'EnvironmentPanel',
+                    title: 'Environment Panel',
+                    params: { environment },
+                  });
+                }
+              } catch {}
+            }}
+            className="absolute top-1 right-1 text-[10px] px-1.5 py-0.5 rounded border bg-gray-700 border-gray-600 hover:bg-gray-700"
+            title="View Environment"
+          >
+            View
+          </button>
+        );
+      })()}
       {/* Children task nodes render inside */}
     </div>
   );
 };
 
 // Step Node Component (child of task)
-const StepNode = ({ data, selected }) => {
-  const { label, status } = data || {};
+const StepNode = ({ id, data, selected }) => {
+  const { label, status, parentTaskId, isInitial } = data || {};
+  const tasks = useAppStore((s) => s.tasks);
+  const addTask = useAppStore((s) => s.addTask);
+
+  const parentTask = tasks.find((t) => t.id === parentTaskId);
+
+  const handleCreateTaskFromStep = (e) => {
+    e.stopPropagation();
+    if (!parentTask) return;
+    const newTaskId = `task_from_step_${Date.now()}`;
+    addTask({ id: newTaskId, name: `${label || 'Step'} → Task`, status: 'pending', priority: 'low', environmentId: parentTask.environmentId });
+    if (data?.onAfterCreateTaskFromStep) {
+      try { data.onAfterCreateTaskFromStep(id, newTaskId); } catch {}
+    }
+  };
   return (
     <div className={`relative rounded-md border ${selected ? 'border-blue-400' : 'border-gray-600'} bg-gray-700 text-white px-2 py-2 w-full h-full`}> 
       <div className="text-[11px] font-medium truncate" title={label}>{label || 'Step'}</div>
-      {status && (
+      {!isInitial && status && (
         <div className="mt-1 text-[10px] opacity-80">{status}</div>
       )}
-      {/* Handles for connecting steps */}
-      <Handle type="target" position={Position.Left} />
-      <Handle type="source" position={Position.Right} />
+      {/* Handles for connecting steps (no left handle). Initial step only has bottom source. */}
+      {!isInitial && <Handle type="target" position={Position.Top} />}
+      <Handle type="source" position={Position.Bottom} />
+      {/* Branch handle on the right for non-initial steps */}
+      {!isInitial && <Handle type="source" id="branch" position={Position.Right} />}
+      {/* Action: create task from step */}
+      <button
+        onClick={handleCreateTaskFromStep}
+        className="absolute right-[-10px] top-1/2 -translate-y-1/2 text-[10px] px-1 py-0.5 rounded border bg-gray-800 border-gray-600 hover:bg-gray-700"
+        title="Create Task from Step"
+      >
+        ➕
+      </button>
     </div>
   );
 };
 
 const nodeTypes = { taskNode: TaskNode, environmentNode: EnvironmentNode, stepNode: StepNode };
 
-const generateInitialPositions = (tasks) => {
-  // Lay out nodes in a simple grid
-  const positions = {};
-  const colCount = 3;
-  const xGap = 240;
-  const yGap = 140;
-  tasks.forEach((t, idx) => {
-    const col = idx % colCount;
-    const row = Math.floor(idx / colCount);
-    positions[t.id] = { x: col * xGap, y: row * yGap };
-  });
-  return positions;
-};
+// const generateInitialPositions = (tasks) => { /* no longer used */ };
 
 const TaskFlowPanel = () => {
   const tasks = useAppStore((s) => s.tasks);
   const environments = useAppStore((s) => s.environments);
-  const addTask = useAppStore((s) => s.addTask);
 
   const [edges, setEdges] = useState([]);
   const [nodes, setNodes] = useState(() => {
@@ -262,29 +403,64 @@ const TaskFlowPanel = () => {
 
       // 3) Keep existing step nodes that belong to existing tasks
       const existingTaskIds = new Set(tasks.map((t) => t.id));
-      const stepNodes = existing.filter((n) => n.type === 'stepNode' && existingTaskIds.has(n.parentId));
+      let stepNodes = existing.filter((n) => n.type === 'stepNode' && existingTaskIds.has(n.parentId));
 
-      // Inject onAddStep callback into task node data
-      const taskNodesWithActions = taskNodes.map((n) => ({ ...n, data: { ...n.data, onAddStep: (taskId) => {
+      // Ensure each task has an initial step node
+      const haveInitialByTask = new Set(stepNodes.filter((n) => n.data?.isInitial).map((n) => n.parentId));
+      const missingInitialFor = tasks.filter((t) => !haveInitialByTask.has(t.id));
+      const initialNodes = missingInitialFor.map((t) => ({
+        id: `step_init_${t.id}`,
+        type: 'stepNode',
+        parentId: t.id,
+        extent: 'parent',
+        position: { x: 16, y: 24 },
+        style: { width: 180, height: 56 },
+        data: { label: 'Initial Step', status: 'instruction', parentTaskId: t.id, isInitial: true },
+      }));
+      stepNodes = [...stepNodes, ...initialNodes];
+
+      // Inject callbacks and current open mode into task node data
+      const taskNodesWithActions = taskNodes.map((n) => ({ ...n, data: { ...n.data, openMode,
+        onAddStep: (taskId) => {
+        const newStepId = `step_${taskId}_${Date.now()}`;
+        let prevId = null;
         setNodes((nds) => {
-          // count existing steps for grid placement
           const stepsForTask = nds.filter((x) => x.type === 'stepNode' && x.parentId === taskId);
-          const idx = stepsForTask.length;
+          // Determine previous step: highest y among existing steps (includes initial)
+          if (stepsForTask.length) {
+            const last = stepsForTask.slice().sort((a, b) => (a.position?.y || 0) - (b.position?.y || 0))[stepsForTask.length - 1];
+            prevId = last.id;
+          } else {
+            prevId = `step_init_${taskId}`;
+          }
+
+          // Exclude initial for grid counting
+          const nonInitial = stepsForTask.filter((s) => !s.data?.isInitial);
+          const idx = nonInitial.length;
           const col = idx % 2;
           const row = Math.floor(idx / 2);
-          const newStepId = `step_${taskId}_${Date.now()}`;
           const newStep = {
             id: newStepId,
             type: 'stepNode',
             parentId: taskId,
             extent: 'parent',
-            position: { x: 16 + col * 120, y: 64 + row * 80 },
+            position: { x: 16 + col * 120, y: 120 + row * 80 },
             style: { width: 108, height: 56 },
-            data: { label: `Step ${idx + 1}`, status: 'pending' },
+            data: { label: `Step ${idx + 1}`, status: 'pending', parentTaskId: taskId },
           };
           return [...nds, newStep];
         });
-      } } }));
+        // Connect previous step -> new step without referencing outer nodes state
+        setEdges((eds) => {
+          const sourceId = prevId || `step_init_${taskId}`;
+          const edgeId = `e_${sourceId}_${Date.now()}`;
+          return addEdge({ id: edgeId, source: sourceId, target: newStepId }, eds);
+        });
+        },
+        onAfterCreateTaskFromStep: (sourceStepId, newTaskId) => {
+          setEdges((eds) => addEdge({ id: `e_branch_${sourceStepId}_${newTaskId}`, source: sourceStepId, target: newTaskId, label: 'branch' }, eds));
+        }
+      } }));
 
       return [...envNodes, ...taskNodesWithActions, ...stepNodes];
     });
@@ -302,23 +478,37 @@ const TaskFlowPanel = () => {
     setEdges((eds) => addEdge(params, eds));
   }, []);
 
-  const handleAddTask = () => {
-    const id = `task_${Date.now()}`;
-    const name = `New Task ${tasks.length + 1}`;
-    const environmentId = 'env1';
-    addTask({ id, name, status: 'pending', priority: 'low', environmentId });
-  };
+  // const handleAddTask = () => { /* optional control removed in minimal header */ };
 
-  const [ready, setReady] = useState(false);
+  // const [ready, setReady] = useState(false);
 
-  useEffect(() => {
-    // Defer mounting the heavy canvas until layout stabilizes in dockview
-    const t = setTimeout(() => setReady(true), 150);
-    return () => clearTimeout(t);
-  }, []);
+  // useEffect(() => { /* deferred mount not needed in simplified render */ }, []);
+
+  const [openMode, setOpenMode] = useState('normal'); // 'normal' | 'preview' | 'pinned'
 
   return (
     <div className="h-full w-full bg-black text-white flex flex-col">
+      {/* Top bar */}
+      <div className="px-2 py-1 border-b border-gray-700 bg-gray-900 flex items-center gap-2 text-xs">
+        <button
+          className={`px-2 py-0.5 rounded border ${openMode === 'pinned' ? 'bg-gray-700 border-gray-600' : 'bg-transparent border-gray-700 hover:bg-gray-800'}`}
+          onClick={() => setOpenMode('pinned')}
+        >
+          Open in Pinned
+        </button>
+        <button
+          className={`px-2 py-0.5 rounded border ${openMode === 'preview' ? 'bg-gray-700 border-gray-600' : 'bg-transparent border-gray-700 hover:bg-gray-800'}`}
+          onClick={() => setOpenMode('preview')}
+        >
+          Open in Preview
+        </button>
+        <button
+          className={`px-2 py-0.5 rounded border ${openMode === 'normal' ? 'bg-gray-700 border-gray-600' : 'bg-transparent border-gray-700 hover:bg-gray-800'}`}
+          onClick={() => setOpenMode('normal')}
+        >
+          Open in Normal
+        </button>
+      </div>
       <ReactFlowProvider>
         <ReactFlow 
           nodes={nodes}
@@ -328,6 +518,7 @@ const TaskFlowPanel = () => {
           onConnect={onConnect}
           nodeTypes={nodeTypes}
           defaultViewport={{ x: 0, y: 0, zoom: 0.9 }}
+          defaultEdgeOptions={{ zIndex: 1 }}
         >
           <Background />
           <Controls />
