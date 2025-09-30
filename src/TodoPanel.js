@@ -239,23 +239,23 @@ const TodoPanel = () => {
 
         .todo-editor .ti-plus {
           position: relative;
-          width: 1rem;
-          height: 1rem;
-          line-height: 1rem;
-          text-align: center;
-          border-radius: 4px;
-          border: 1px solid #4b5563;
-          color: #9ca3af;
-          background: transparent;
           display: inline-flex;
           align-items: center;
           justify-content: center;
+          height: 1.25rem;
+          padding: 0 0.5rem;
+          border-radius: 4px;
+          border: 1px solid #4b5563;
+          color: #e5e7eb;
+          background: #1f2937;
+          white-space: nowrap;
+          cursor: pointer;
         }
 
         .todo-editor .ti-plus:hover {
           color: #e5e7eb;
           border-color: #9ca3af;
-          background: #1f2937;
+          background: #374151;
         }
 
         .todo-editor .ti-checkbox {
@@ -272,6 +272,10 @@ const TodoPanel = () => {
           display: flex;
           gap: 0.5rem;
           padding: 0.5rem;
+          pointer-events: auto;
+          align-items: center;
+          flex-wrap: wrap;
+          max-width: 22rem;
         }
 
         .todo-editor .ti-adder-input {
@@ -281,6 +285,8 @@ const TodoPanel = () => {
           border-radius: 4px;
           padding: 0.25rem 0.5rem;
           min-width: 12rem;
+          width: 12rem;
+          max-width: 100%;
         }
 
         .todo-editor .ti-adder-btn {
@@ -298,13 +304,17 @@ const TodoPanel = () => {
         .todo-editor .ti-adder-popover {
           position: absolute;
           z-index: 60;
+          right: 0;
+          left: auto;
+          top: calc(100% + 0.25rem);
           transform: translate(0, 0);
-          margin-left: 1.75rem;
-          margin-top: 0.25rem;
           background: #111827;
           border: 1px solid #374151;
           border-radius: 6px;
           box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+          max-width: min(22rem, 90vw);
+          overflow: hidden;
+          pointer-events: auto;
         }
 
         .todo-editor ul[data-type="taskList"] li > div {

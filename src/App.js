@@ -14,6 +14,7 @@ import EnvironmentTasksPanel from './EnvironmentTasksPanel';
 import EnvironmentDiffPanel from './EnvironmentDiffPanel';
 import EnvironmentInfoPanel from './EnvironmentInfoPanel';
 import TaskFlowPanel from './TaskFlowPanel';
+import BrowserPanel from './BrowserPanel';
 import useAppStore from './store/useAppStore';
 import { Button } from './components/ui/button';
 import { Popover, PopoverTrigger, PopoverContent } from './components/ui/popover';
@@ -45,6 +46,7 @@ const App = () => {
     EnvironmentDiffPanel: (props) => <EnvironmentDiffPanel {...props} />,
     EnvironmentInfoPanel: (props) => <EnvironmentInfoPanel {...props} />,
     TaskFlowPanel: (props) => <TaskFlowPanel {...props} />,
+    BrowserPanel: (props) => <BrowserPanel {...props} />,
   }), [dockviewApi]);
 
   const closeIfExists = (api, id) => {
@@ -56,7 +58,7 @@ const App = () => {
 
   const buildTaskLayout = (api) => {
     // Close base panels if they exist
-    ['left_panel','environment_list','chat_panel','todo_panel','general_environment_panel'].forEach(id => closeIfExists(api,id));
+    ['left_panel','environment_list','chat_panel','todo_panel','general_environment_panel','browser_panel'].forEach(id => closeIfExists(api,id));
 
     // Left controls
     api.addPanel({ id: 'left_panel', component: 'LeftPanel', title: 'Controls' });
@@ -73,11 +75,13 @@ const App = () => {
   };
 
   const buildNormalLayout = (api) => {
-    ['left_panel','environment_list','chat_panel','todo_panel','general_environment_panel'].forEach(id => closeIfExists(api,id));
+    ['left_panel','environment_list','chat_panel','todo_panel','general_environment_panel','browser_panel'].forEach(id => closeIfExists(api,id));
     // Todo on left
     api.addPanel({ id: 'todo_panel', component: 'TodoPanel', title: 'Todo Lists' });
     // Chat on right
     api.addPanel({ id: 'chat_panel', component: 'ChatPanel', title: 'Chat', position: { referencePanel: 'todo_panel', direction: 'right' } });
+    // Browser to the right of chat
+    api.addPanel({ id: 'browser_panel', component: 'BrowserPanel', title: 'Browser', position: { referencePanel: 'chat_panel', direction: 'right' } });
     // Defaults for modes (preview safe)
     setTaskOpenMode('preview');
     setEnvironmentOpenMode('preview');
@@ -156,6 +160,7 @@ const App = () => {
                 todo_panel: () => ({ referencePanel: 'chat_panel', direction: 'right' }),
                 left_panel: () => undefined,
                 taskflow_panel: () => ({ referencePanel: 'todo_panel', direction: 'right' }),
+                browser_panel: () => ({ referencePanel: 'chat_panel', direction: 'right' }),
               };
 
               return (
@@ -196,6 +201,12 @@ const App = () => {
                         onClick={() => openOrFocus('taskflow_panel', 'TaskFlowPanel', 'Task Flow', defaultPositions.taskflow_panel())}
                       >
                         Task Flow
+                      </button>
+                      <button
+                        className="w-full text-left px-2 py-1 rounded hover:bg-gray-700"
+                        onClick={() => openOrFocus('browser_panel', 'BrowserPanel', 'Browser', defaultPositions.browser_panel())}
+                      >
+                        Browser
                       </button>
                     </div>
                   </PopoverContent>

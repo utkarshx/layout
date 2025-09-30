@@ -18,6 +18,9 @@ const useAppStore = create(
         { id: 'task3', name: 'Deploy Application', status: 'completed', priority: 'low', environmentId: 'env1' },
       ],
 
+      // Map todo item ids (from editor nodes) -> task ids
+      todoTaskMap: {},
+
       // UI State
       activeTab: 'environments',
       openPopovers: {},
@@ -74,6 +77,24 @@ const useAppStore = create(
         set((state) => ({
           tasks: state.tasks.filter((task) => task.id !== id),
         }), false, 'removeTask'),
+
+      // Link a todo node id to a task id
+      linkTodoToTask: (todoId, taskId) =>
+        set((state) => ({
+          todoTaskMap: { ...state.todoTaskMap, [todoId]: taskId },
+        }), false, 'linkTodoToTask'),
+
+      getTaskForTodo: (todoId) => {
+        const state = get();
+        const taskId = state.todoTaskMap?.[todoId];
+        if (!taskId) return null;
+        return state.tasks.find((t) => t.id === taskId) || null;
+      },
+
+      getTaskById: (id) => {
+        const state = get();
+        return state.tasks.find((t) => t.id === id) || null;
+      },
 
       getFilteredAndSortedTasks: () => {
         const state = get();
