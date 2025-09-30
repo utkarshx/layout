@@ -30,6 +30,8 @@ const useAppStore = create(
       pinnedEnvironment: null,
       // Global open mode state
       taskOpenMode: 'preview', // 'preview' | 'chat' | 'panel'
+      // Pinned Environment specific task open mode
+      pinnedTaskOpenMode: 'preview', // 'preview' | 'chat' | 'panel'
       environmentOpenMode: 'preview', // 'preview' | 'pinned' | 'general' (EnvironmentList controls)
       chatEnvironmentOpenMode: 'preview', // independent open mode for ChatPanel
       // Pending open requests for ChatPanel
@@ -158,6 +160,9 @@ const useAppStore = create(
       setTaskOpenMode: (mode) =>
         set(() => ({ taskOpenMode: mode }), false, 'setTaskOpenMode'),
 
+      setPinnedTaskOpenMode: (mode) =>
+        set(() => ({ pinnedTaskOpenMode: mode }), false, 'setPinnedTaskOpenMode'),
+
       setEnvironmentOpenMode: (mode) =>
         set(() => ({ environmentOpenMode: mode }), false, 'setEnvironmentOpenMode'),
 
@@ -192,6 +197,7 @@ const useAppStore = create(
           taskFilterBy: 'all',
           pinnedEnvironment: null,
           taskOpenMode: 'preview',
+          pinnedTaskOpenMode: 'preview',
           environmentOpenMode: 'preview',
           chatEnvironmentOpenMode: 'preview',
           pendingTaskChats: [],

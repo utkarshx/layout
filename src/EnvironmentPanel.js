@@ -22,7 +22,9 @@ import {
   Terminal,
   FileText,
   BarChart3,
-  Pin
+  Pin,
+  Eye,
+  MessageSquare
 } from 'lucide-react';
 
 
@@ -36,7 +38,9 @@ const EnvironmentPanel = (props) => {
   const { 
     environments, 
     pinnedEnvironment,
-    currentGeneralEnvironment
+    currentGeneralEnvironment,
+    pinnedTaskOpenMode,
+    setPinnedTaskOpenMode,
   } = useAppStore();
   
   // State for current environment (can be different from initial if this is a general panel)
@@ -86,7 +90,10 @@ const EnvironmentPanel = (props) => {
         id: panelConfig.id,
         component: panelConfig.component,
         title: panelConfig.title,
-        params: { environment: environment }
+        params: { 
+          environment: environment,
+          isPinnedFromParent: panelConfig.component === 'EnvironmentTasksPanel' ? isPinned : undefined
+        }
       });
       
       setActivePanels(prev => new Set([...prev, panelConfig.id]));
@@ -100,7 +107,7 @@ const EnvironmentPanel = (props) => {
     } catch (error) {
       console.error('Error adding panel:', error);
     }
-  }, [nestedDockviewApi, activePanels, environment]);
+  }, [nestedDockviewApi, activePanels, environment, isPinned]);
 
   // State for Add Tool dropdown
   const [isAddToolOpen, setIsAddToolOpen] = useState(false);
@@ -184,13 +191,13 @@ const EnvironmentPanel = (props) => {
   ), [availablePanels, activePanels, addPanel, isAddToolOpen, setIsAddToolOpen]);
 
   const nestedComponents = useMemo(() => ({
-    EnvironmentTasksPanel: (props) => <EnvironmentTasksPanel {...props} onTaskSelect={onTaskSelect} />,
+    EnvironmentTasksPanel: (props) => <EnvironmentTasksPanel {...props} />, 
     EnvironmentDiffPanel: (props) => <EnvironmentDiffPanel {...props} />,
     EnvironmentInfoPanel: (props) => <EnvironmentInfoPanel {...props} />,
     EnvironmentTerminalPanel: (props) => <EnvironmentTerminalPanel {...props} />,
     EnvironmentLogsPanel: (props) => <EnvironmentLogsPanel {...props} />,
     EnvironmentMetricsPanel: (props) => <EnvironmentMetricsPanel {...props} />,
-  }), [onTaskSelect]);
+  }), []);
 
   const onNestedReady = (event) => {
     const { api } = event;
@@ -209,7 +216,7 @@ const EnvironmentPanel = (props) => {
         id: 'tasks_panel',
         component: 'EnvironmentTasksPanel',
         title: 'Tasks',
-        params: { environment: environment }
+        params: { environment: environment, isPinnedFromParent: isPinned }
       });
 
       api.addPanel({
@@ -279,6 +286,38 @@ const EnvironmentPanel = (props) => {
         </div>
         
         <div className="flex items-center gap-2">
+          {/* Task open mode toggle - only for pinned Environment panel */}
+          {isPinned && (
+            <div className="flex items-center gap-1 bg-gray-800 border border-gray-700 rounded p-0.5">
+              <Button
+                size="sm"
+                variant="outline"
+                className={`px-2 py-1 text-xs ${pinnedTaskOpenMode === 'preview' ? 'bg-gray-700 text-white border-gray-600' : 'bg-transparent text-gray-300 border-transparent hover:bg-gray-700'}`}
+                onClick={() => setPinnedTaskOpenMode('preview')}
+                title="Preview"
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className={`px-2 py-1 text-xs ${pinnedTaskOpenMode === 'panel' ? 'bg-gray-700 text-white border-gray-600' : 'bg-transparent text-gray-300 border-transparent hover:bg-gray-700'}`}
+                onClick={() => setPinnedTaskOpenMode('panel')}
+                title="Pinned Task Panel"
+              >
+                <Pin className="h-4 w-4" />
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className={`px-2 py-1 text-xs ${pinnedTaskOpenMode === 'chat' ? 'bg-gray-700 text-white border-gray-600' : 'bg-transparent text-gray-300 border-transparent hover:bg-gray-700'}`}
+                onClick={() => setPinnedTaskOpenMode('chat')}
+                title="Chat"
+              >
+                <MessageSquare className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
           {/* Pin/Unpin button - only show if not opened from popover */}
           {/* {!isOpenedFromPopover && environment && (
             <Button
