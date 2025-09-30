@@ -50,7 +50,7 @@ const TodoPanel = () => {
             <Button
               onClick={() => editor.chain().focus().setParagraph().run()}
               variant="outline"
-              size="sm"
+              size="xs"
               className={`${editor.isActive('paragraph') ? 'bg-blue-600 border-blue-500 text-white' : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'}`}
               aria-label="Normal text"
             >
@@ -59,7 +59,7 @@ const TodoPanel = () => {
             <Button
               onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
               variant="outline"
-              size="sm"
+              size="xs"
               className={`${editor.isActive('heading', { level: 1 }) ? 'bg-blue-600 border-blue-500 text-white' : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'}`}
               aria-label="Heading 1"
             >
@@ -68,7 +68,7 @@ const TodoPanel = () => {
             <Button
               onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
               variant="outline"
-              size="sm"
+              size="xs"
               className={`${editor.isActive('heading', { level: 2 }) ? 'bg-blue-600 border-blue-500 text-white' : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'}`}
               aria-label="Heading 2"
             >
@@ -77,7 +77,7 @@ const TodoPanel = () => {
             <Button
               onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
               variant="outline"
-              size="sm"
+              size="xs"
               className={`${editor.isActive('heading', { level: 3 }) ? 'bg-blue-600 border-blue-500 text-white' : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'}`}
               aria-label="Heading 3"
             >
@@ -90,7 +90,7 @@ const TodoPanel = () => {
             <Button
               onClick={() => editor.chain().focus().toggleBold().run()}
               variant="outline"
-              size="sm"
+              size="xs"
               className={`${editor.isActive('bold') ? 'bg-blue-600 border-blue-500 text-white' : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'}`}
               aria-label="Bold"
             >
@@ -99,7 +99,7 @@ const TodoPanel = () => {
             <Button
               onClick={() => editor.chain().focus().toggleItalic().run()}
               variant="outline"
-              size="sm"
+              size="xs"
               className={`${editor.isActive('italic') ? 'bg-blue-600 border-blue-500 text-white' : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'}`}
               aria-label="Italic"
             >
@@ -108,7 +108,7 @@ const TodoPanel = () => {
             <Button
               onClick={() => editor.chain().focus().toggleStrike().run()}
               variant="outline"
-              size="sm"
+              size="xs"
               className={`${editor.isActive('strike') ? 'bg-blue-600 border-blue-500 text-white' : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'}`}
               aria-label="Strikethrough"
             >
@@ -117,7 +117,7 @@ const TodoPanel = () => {
             <Button
               onClick={() => editor.chain().focus().toggleHighlight().run()}
               variant="outline"
-              size="sm"
+              size="xs"
               className={`${editor.isActive('highlight') ? 'bg-blue-600 border-blue-500 text-white' : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'}`}
               aria-label="Highlight"
             >
@@ -130,7 +130,7 @@ const TodoPanel = () => {
             <Button
               onClick={() => editor.chain().focus().toggleCodeBlock().run()}
               variant="outline"
-              size="sm"
+              size="xs"
               className={`${editor.isActive('codeBlock') ? 'bg-blue-600 border-blue-500 text-white' : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'}`}
               aria-label="Code block"
             >
@@ -143,7 +143,7 @@ const TodoPanel = () => {
             <Button
               onClick={toggleTaskList}
               variant="outline"
-              size="sm"
+              size="xs"
               className={`${editor.isActive('taskList') ? 'bg-blue-600 border-blue-500 text-white' : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'}`}
             >
               <CheckSquare className="h-4 w-4 mr-1" />
@@ -157,11 +157,11 @@ const TodoPanel = () => {
 
       <div className="flex-1 overflow-y-auto">
         {editor && (
-          <FloatingElement editor={editor}>
+          <FloatingElement editor={editor} floatingOptions={{ placement: 'top', offset: 36 }}>
             <div className="todo-bubble-fixed">
               <Button
                 size="sm"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 text-xs"
+                className="text-white px-2 py-1 text-xs"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => {
                   const { from, to } = editor.state.selection;
@@ -173,7 +173,7 @@ const TodoPanel = () => {
               </Button>
               <Button
                 size="sm"
-                className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 text-xs ml-2"
+                className="text-white px-2 py-1 text-xs ml-2"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => {
                   const { from, to } = editor.state.selection;
@@ -210,6 +210,7 @@ const TodoPanel = () => {
         .todo-editor ul[data-type="taskList"] {
           list-style: none;
           padding: 0;
+          margin: 0;
         }
 
         .todo-editor ul[data-type="taskList"] p {
@@ -218,13 +219,18 @@ const TodoPanel = () => {
 
         .todo-editor ul[data-type="taskList"] li {
           display: flex;
-          align-items: flex-start;
+          align-items: center;
+          gap: 0.5rem;
+          line-height: 1.5;
+          padding: 0.125rem 0;
         }
 
         .todo-editor ul[data-type="taskList"] li > label {
           flex: 0 0 auto;
-          margin-right: 0.5rem;
+          margin: 0;
           user-select: none;
+          display: inline-flex;
+          align-items: center;
         }
 
         .todo-editor .ti-task-item {
@@ -233,7 +239,6 @@ const TodoPanel = () => {
 
         .todo-editor .ti-plus {
           position: relative;
-          margin-right: 0.4rem;
           width: 1rem;
           height: 1rem;
           line-height: 1rem;
@@ -242,6 +247,9 @@ const TodoPanel = () => {
           border: 1px solid #4b5563;
           color: #9ca3af;
           background: transparent;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
         }
 
         .todo-editor .ti-plus:hover {
@@ -257,6 +265,7 @@ const TodoPanel = () => {
 
         .todo-editor .ti-content {
           flex: 1 1 auto;
+          display: block;
         }
 
         .todo-editor .ti-adder {
